@@ -271,7 +271,7 @@ export default function LandingPage() {
                     </div>
                     <svg className="flex-1 w-full text-indigo-400" viewBox="0 0 100 40">
                       <defs>
-                        <linearGradient id="chartGradient" x1="0" y1="0" x2="0" y2="1">
+                        <linearGradient id="chartGradient" x1="0" x1="0" x2="0" y2="1">
                           <stop offset="0%" stopColor="rgb(99, 102, 241)" stopOpacity="0.2"/>
                           <stop offset="100%" stopColor="rgb(99, 102, 241)" stopOpacity="0"/>
                         </linearGradient>
