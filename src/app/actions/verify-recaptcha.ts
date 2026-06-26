@@ -31,27 +31,31 @@ export async function verifyRecaptcha(token: string) {
       if (data.score >= 0.5) {
         return { success: true };
       } else {
-        return { success: false, error: `تم اكتشاف نشاط مشبوه (Score: ${data.score}). يرجى المحاولة من متصفح آخر.` };
+        return { success: false, error: `نشاط مشبوه (Score: ${data.score}). يرجى المحاولة لاحقاً.` };
       }
     }
 
-    // الحصول على أكواد الخطأ من Google
+    // تحليل الأخطاء القادمة من Google
     const errorCodes = data['error-codes'] ? data['error-codes'] : [];
-    const errorString = errorCodes.join(', ');
+    const errorString = errorCodes.join(', ').toLowerCase();
     
-    console.error('reCAPTCHA Failed:', errorString);
+    console.error('reCAPTCHA Failed details:', data);
 
+    if (errorString.includes('project') && errorString.includes('deleted')) {
+      return { success: false, error: 'مشروع الكابتشا محذوف من جوجل. يجب إنشاء مفاتيح جديدة من Google reCAPTCHA Console.' };
+    }
+    
     if (errorCodes.includes('invalid-input-secret')) {
-      return { success: false, error: 'المفتاح السري (Secret Key) المبرمج في الخادم غير صحيح.' };
+      return { success: false, error: 'المفتاح السري (Secret Key) غير صحيح أو منتهي الصلاحية.' };
     }
     
     if (errorCodes.includes('invalid-input-response')) {
-      return { success: false, error: 'الرمز (Token) غير صالح. تأكد من تطابق مفتاحي الكابتشا (Site & Secret).' };
+      return { success: false, error: 'الرمز غير صالح. تأكد من تطابق مفتاحي الكابتشا (Site & Secret).' };
     }
 
-    return { success: false, error: `فشل التحقق: ${errorString || 'خطأ غير معروف'}. يرجى تحديث الصفحة.` };
+    return { success: false, error: `فشل التحقق: ${errorString || 'خطأ في الإعدادات'}.` };
   } catch (error) {
     console.error('reCAPTCHA Error:', error);
-    return { success: false, error: 'تعذر الاتصال بخدمة التحقق. يرجى التأكد من اتصال الإنترنت.' };
+    return { success: false, error: 'فشل الاتصال بخدمة التحقق. تأكد من جودة الإنترنت.' };
   }
 }

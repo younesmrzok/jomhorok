@@ -1,8 +1,9 @@
-
 import type { Metadata } from 'next';
 import './globals.css';
 import { Toaster } from "@/components/ui/toaster";
 import Script from 'next/script';
+
+const RECAPTCHA_SITE_KEY = "6LeFHzUtAAAAACDrD4nvh_Cud50VocAUqYYS841p";
 
 export const metadata: Metadata = {
   title: {
@@ -62,7 +63,7 @@ export default function RootLayout({
         {children}
         <Toaster />
         <Script
-          src="https://www.google.com/recaptcha/api.js?render=6LeFHzUtAAAAACDrD4nvh_Cud50VocAUqYYS841p"
+          src={`https://www.google.com/recaptcha/api.js?render=${RECAPTCHA_SITE_KEY}`}
           strategy="afterInteractive"
         />
       </body>

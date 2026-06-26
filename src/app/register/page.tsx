@@ -34,6 +34,9 @@ declare global {
   }
 }
 
+// المرجو تحديث هذا المفتاح إذا قمت بإنشاء واحد جديد
+const RECAPTCHA_SITE_KEY = "6LeFHzUtAAAAACDrD4nvh_Cud50VocAUqYYS841p";
+
 export default function RegisterPage() {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [name, setName] = useState('');
@@ -72,11 +75,11 @@ export default function RegisterPage() {
       // 1. Get reCAPTCHA Token
       const token = await new Promise<string>((resolve, reject) => {
         if (typeof window.grecaptcha === 'undefined') {
-          reject(new Error("reCAPTCHA لم يتم تحميله بعد."));
+          reject(new Error("reCAPTCHA لم يتم تحميله بعد. يرجى تحديث الصفحة."));
           return;
         }
         window.grecaptcha.ready(() => {
-          window.grecaptcha.execute('6LeFHzUtAAAAACDrD4nvh_Cud50VocAUqYYS841p', { action: 'register' })
+          window.grecaptcha.execute(RECAPTCHA_SITE_KEY, { action: 'register' })
             .then(resolve)
             .catch(reject);
         });
