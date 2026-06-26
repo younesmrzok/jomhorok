@@ -435,50 +435,50 @@ export default function LandingPage() {
             </Accordion>
           </section>
 
-          <footer className="mt-12 border-t border-slate-100 bg-white rounded-t-[3rem] pt-16 pb-10 px-6 font-tajawal">
-            <div className="max-w-4xl mx-auto space-y-12">
+          <footer className="mt-12 border-t border-slate-100 bg-white rounded-t-[3rem] pt-8 pb-10 px-6 font-tajawal">
+            <div className="max-w-4xl mx-auto space-y-10">
               <div className="flex flex-col items-center text-center space-y-4">
                 <div className="flex items-center gap-2">
-                  <Image src={headerLogoUrl} alt="جمهورك" width={42} height={42} className="object-contain" />
-                  <span className="text-2xl font-black text-slate-900">جمهورك</span>
+                  <Image src={headerLogoUrl} alt="جمهورك" width={38} height={38} className="object-contain" />
+                  <span className="text-xl font-black text-slate-900">جمهورك</span>
                 </div>
-                <p className="text-sm text-slate-500 leading-relaxed font-medium max-w-sm">
-                  المنصة العربية الأولى والأسرع لتقديم خدمات التسويق الرقمي. نجمع بين الجودة العالية والأسعار التنافسية لضمان نمو حساباتك بشكل طبيعي وآمن.
+                <p className="text-xs text-slate-500 leading-relaxed font-bold max-w-xs mx-auto">
+                  المنصة الأسرع والأرخص لخدمات التسويق الرقمي في الوطن العربي. جودة مضمونة ودعم فني على مدار الساعة.
                 </p>
               </div>
 
               <div className="grid grid-cols-2 gap-8 max-w-xs mx-auto">
-                <div className="space-y-5">
-                  <h4 className="text-sm font-black text-slate-900 flex items-center gap-2 justify-start">
-                    <div className="w-1 h-4 bg-orange-500 rounded-full" />
-                    روابط
+                <div className="space-y-4">
+                  <h4 className="text-xs font-black text-slate-900 flex items-center gap-2 justify-start">
+                    <div className="w-1 h-3 bg-orange-500 rounded-full" />
+                    القانونية
                   </h4>
-                  <ul className="space-y-3 text-sm font-bold text-slate-500 text-right">
-                    <li><Link href="/register" className="hover:text-orange-500 transition-colors">الخصوصية</Link></li>
-                    <li><Link href="/register" className="hover:text-orange-500 transition-colors">الشروط</Link></li>
+                  <ul className="space-y-2 text-[11px] font-black text-slate-400 text-right">
+                    <li><Link href="/register" className="hover:text-orange-500 transition-colors">سياسة الخصوصية</Link></li>
+                    <li><Link href="/register" className="hover:text-orange-500 transition-colors">شروط الخدمة</Link></li>
                   </ul>
                 </div>
 
-                <div className="space-y-5">
-                  <h4 className="text-sm font-black text-slate-900 flex items-center gap-2 justify-start">
-                    <div className="w-1 h-4 bg-orange-500 rounded-full" />
+                <div className="space-y-4">
+                  <h4 className="text-xs font-black text-slate-900 flex items-center gap-2 justify-start">
+                    <div className="w-1 h-3 bg-orange-500 rounded-full" />
                     المساعدة
                   </h4>
-                  <ul className="space-y-3 text-sm font-bold text-slate-500 text-right">
-                    <li><Link href="/register" className="hover:text-orange-500 transition-colors">الدعم</Link></li>
-                    <li><Link href="/register" className="hover:text-orange-500 transition-colors">الأسئلة</Link></li>
+                  <ul className="space-y-2 text-[11px] font-black text-slate-400 text-right">
+                    <li><Link href="/register" className="hover:text-orange-500 transition-colors">مركز الدعم</Link></li>
+                    <li><Link href="/register" className="hover:text-orange-500 transition-colors">الأسئلة الشائعة</Link></li>
                   </ul>
                 </div>
               </div>
 
-              <div className="pt-8 border-t border-slate-50 flex flex-col items-center gap-4">
-                <div className="inline-flex items-center gap-2 bg-slate-50 px-5 py-2 rounded-full border border-slate-100/50">
-                  <span className="text-xs font-black text-slate-400">صنع بكل</span>
-                  <Heart className="h-4 w-4 text-rose-500 fill-rose-500 animate-pulse" />
-                  <span className="text-xs font-black text-slate-400">لدعم المستخدم العربي</span>
+              <div className="pt-8 border-t border-slate-50 flex flex-col items-center gap-4 text-center">
+                <div className="inline-flex items-center gap-1.5 text-[10px] font-black text-slate-400 bg-slate-50 px-4 py-1.5 rounded-full border border-slate-100">
+                  <span>صنع بكل</span>
+                  <Heart className="h-3 w-3 text-rose-500 fill-rose-500 animate-pulse" />
+                  <span>للمستخدم العربي</span>
                 </div>
-                <p className="text-[10px] text-slate-300 font-bold uppercase tracking-widest text-center">
-                  &copy; 2026 جميع الحقوق محفوظة لـ JOMHORAK.COM
+                <p className="text-[9px] text-slate-300 font-bold uppercase tracking-widest">
+                  &copy; 2026 جميع الحقوق محفوظة لجمهورك (JOMHORAK.COM)
                 </p>
               </div>
             </div>
