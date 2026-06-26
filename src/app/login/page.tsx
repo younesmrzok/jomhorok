@@ -26,8 +26,7 @@ declare global {
   }
 }
 
-// المرجو تحديث هذا المفتاح إذا قمت بإنشاء واحد جديد
-const RECAPTCHA_SITE_KEY = "6LeFHzUtAAAAACDrD4nvh_Cud50VocAUqYYS841p";
+const RECAPTCHA_SITE_KEY = "6LfV6TYtAAAAAB17OtJJ3rWBfpd-JUrrfg1HTOHp";
 
 export default function LoginPage() {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
@@ -49,7 +48,6 @@ export default function LoginPage() {
     
     setLoading(true);
     try {
-      // 1. Get reCAPTCHA Token
       const token = await new Promise<string>((resolve, reject) => {
         if (typeof window.grecaptcha === 'undefined') {
           reject(new Error("reCAPTCHA لم يتم تحميله بعد. يرجى تحديث الصفحة."));
@@ -62,7 +60,6 @@ export default function LoginPage() {
         });
       });
 
-      // 2. Verify Token in Backend
       const verification = await verifyRecaptcha(token);
       if (!verification.success) {
         toast({ variant: "destructive", title: "خطأ في الحماية", description: verification.error });
@@ -70,7 +67,6 @@ export default function LoginPage() {
         return;
       }
 
-      // 3. Proceed with Login
       await loginUser(email, password);
       toast({ variant: "success", title: "تم الدخول بنجاح", description: "أهلاً بك مجدداً في جمهورك." });
       router.push('/dashboard');

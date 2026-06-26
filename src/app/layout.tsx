@@ -3,7 +3,7 @@ import './globals.css';
 import { Toaster } from "@/components/ui/toaster";
 import Script from 'next/script';
 
-const RECAPTCHA_SITE_KEY = "6LeFHzUtAAAAACDrD4nvh_Cud50VocAUqYYS841p";
+const RECAPTCHA_SITE_KEY = "6LfV6TYtAAAAAB17OtJJ3rWBfpd-JUrrfg1HTOHp";
 
 export const metadata: Metadata = {
   title: {

@@ -34,8 +34,7 @@ declare global {
   }
 }
 
-// المرجو تحديث هذا المفتاح إذا قمت بإنشاء واحد جديد
-const RECAPTCHA_SITE_KEY = "6LeFHzUtAAAAACDrD4nvh_Cud50VocAUqYYS841p";
+const RECAPTCHA_SITE_KEY = "6LfV6TYtAAAAAB17OtJJ3rWBfpd-JUrrfg1HTOHp";
 
 export default function RegisterPage() {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
@@ -72,7 +71,6 @@ export default function RegisterPage() {
 
     setLoading(true);
     try {
-      // 1. Get reCAPTCHA Token
       const token = await new Promise<string>((resolve, reject) => {
         if (typeof window.grecaptcha === 'undefined') {
           reject(new Error("reCAPTCHA لم يتم تحميله بعد. يرجى تحديث الصفحة."));
@@ -85,7 +83,6 @@ export default function RegisterPage() {
         });
       });
 
-      // 2. Verify Token in Backend
       const verification = await verifyRecaptcha(token);
       if (!verification.success) {
         toast({ variant: "destructive", title: "خطأ في الحماية", description: verification.error });
@@ -93,7 +90,6 @@ export default function RegisterPage() {
         return;
       }
 
-      // 3. Proceed with Registration
       await registerUser(email, password, { name, gender: gender as 'male' | 'female' });
       toast({ variant: "success", title: "تم التسجيل بنجاح", description: "تم إنشاء حسابك، مرحباً بك في عائلة جمهورك." });
       router.push('/dashboard');
