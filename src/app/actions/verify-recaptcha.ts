@@ -1,4 +1,3 @@
-
 'use server';
 
 /**
@@ -9,12 +8,11 @@ export async function verifyRecaptcha(token: string) {
   const secretKey = process.env.RECAPTCHA_SECRET_KEY;
   
   if (!secretKey) {
-    console.error('CRITICAL: RECAPTCHA_SECRET_KEY is missing in environment variables.');
-    return { success: false, error: 'إعدادات الحماية غير مكتملة في الخادم (Secret Key مفقود).' };
+    console.error('CRITICAL: RECAPTCHA_SECRET_KEY is missing.');
+    return { success: false, error: 'المفتاح السري (Secret Key) غير معرف في إعدادات الخادم.' };
   }
 
   try {
-    // Using URLSearchParams as recommended by Google for application/x-www-form-urlencoded
     const params = new URLSearchParams();
     params.append('secret', secretKey);
     params.append('response', token);
@@ -29,30 +27,31 @@ export async function verifyRecaptcha(token: string) {
 
     const data = await response.json();
 
-    // Log the response for server-side debugging
-    console.log('reCAPTCHA server response:', data);
-
     if (data.success) {
-      // v3 returns a score (0.0 to 1.0). 0.5 is the recommended threshold.
       if (data.score >= 0.5) {
         return { success: true };
       } else {
-        console.warn(`reCAPTCHA blocked a suspected bot. Score: ${data.score}`);
-        return { success: false, error: 'تم اكتشاف نشاط مشبوه. يرجى المحاولة مرة أخرى أو التأكد من عدم استخدام VPN.' };
+        return { success: false, error: `تم اكتشاف نشاط مشبوه (Score: ${data.score}). يرجى المحاولة من متصفح آخر.` };
       }
     }
 
-    // Handle Google errors
-    const errorCodes = data['error-codes'] ? data['error-codes'].join(', ') : 'unknown-error';
-    console.error(`reCAPTCHA validation failed. Error codes: ${errorCodes}`);
+    // الحصول على أكواد الخطأ من Google
+    const errorCodes = data['error-codes'] ? data['error-codes'] : [];
+    const errorString = errorCodes.join(', ');
     
+    console.error('reCAPTCHA Failed:', errorString);
+
     if (errorCodes.includes('invalid-input-secret')) {
-      return { success: false, error: 'مفتاح الحماية (Secret Key) المبرمج في الخادم غير صحيح.' };
+      return { success: false, error: 'المفتاح السري (Secret Key) المبرمج في الخادم غير صحيح.' };
+    }
+    
+    if (errorCodes.includes('invalid-input-response')) {
+      return { success: false, error: 'الرمز (Token) غير صالح. تأكد من تطابق مفتاحي الكابتشا (Site & Secret).' };
     }
 
-    return { success: false, error: 'فشل التحقق من الحماية. يرجى التأكد من عدم وجود إضافات تمنع خدمات Google.' };
+    return { success: false, error: `فشل التحقق: ${errorString || 'خطأ غير معروف'}. يرجى تحديث الصفحة.` };
   } catch (error) {
-    console.error('reCAPTCHA connection error:', error);
-    return { success: false, error: 'تعذر الاتصال بخدمة التحقق. يرجى المحاولة لاحقاً.' };
+    console.error('reCAPTCHA Error:', error);
+    return { success: false, error: 'تعذر الاتصال بخدمة التحقق. يرجى التأكد من اتصال الإنترنت.' };
   }
 }
