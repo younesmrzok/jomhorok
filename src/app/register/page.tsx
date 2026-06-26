@@ -277,38 +277,36 @@ export default function RegisterPage() {
 
           <footer className="mt-20 border-t border-slate-100 bg-white rounded-t-[3rem] pt-16 pb-10 px-6 font-tajawal -mx-6 mb-[-3rem]">
             <div className="max-w-4xl mx-auto space-y-12">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-10 text-right">
-                <div className="space-y-4">
-                  <div className="flex items-center gap-2">
-                    <Image src={headerLogoUrl} alt="جمهورك" width={38} height={38} className="object-contain" />
-                    <span className="text-xl font-black text-slate-900">جمهورك</span>
-                  </div>
-                  <p className="text-xs text-slate-500 leading-relaxed font-bold max-w-xs">
-                    المنصة الأسرع والأرخص لخدمات التسويق الرقمي في الوطن العربي. جودة مضمونة ودعم فني على مدار الساعة.
-                  </p>
+              <div className="flex flex-col items-center text-center space-y-4">
+                <div className="flex items-center gap-2">
+                  <Image src={headerLogoUrl} alt="جمهورك" width={38} height={38} className="object-contain" />
+                  <span className="text-xl font-black text-slate-900">جمهورك</span>
                 </div>
-                
-                <div className="grid grid-cols-2 gap-8">
-                  <div className="space-y-4">
-                    <h4 className="text-xs font-black text-slate-900 flex items-center gap-2">
-                      <div className="w-1 h-3 bg-orange-500 rounded-full" />
-                      القانونية
-                    </h4>
-                    <ul className="space-y-2 text-[11px] font-black text-slate-400">
-                      <li><Link href="/dashboard/privacy" className="hover:text-orange-500 transition-colors">سياسة الخصوصية</Link></li>
-                      <li><Link href="/dashboard/terms" className="hover:text-orange-500 transition-colors">شروط الخدمة</Link></li>
-                    </ul>
-                  </div>
-                  <div className="space-y-4">
-                    <h4 className="text-xs font-black text-slate-900 flex items-center gap-2">
-                      <div className="w-1 h-3 bg-orange-500 rounded-full" />
-                      المساعدة
-                    </h4>
-                    <ul className="space-y-2 text-[11px] font-black text-slate-400">
-                      <li><Link href="/dashboard/support" className="hover:text-orange-500 transition-colors">مركز الدعم</Link></li>
-                      <li><Link href="/dashboard/support" className="hover:text-orange-500 transition-colors">الأسئلة الشائعة</Link></li>
-                    </ul>
-                  </div>
+                <p className="text-xs text-slate-500 leading-relaxed font-bold max-w-xs mx-auto">
+                  المنصة الأسرع والأرخص لخدمات التسويق الرقمي في الوطن العربي. جودة مضمونة ودعم فني على مدار الساعة.
+                </p>
+              </div>
+              
+              <div className="grid grid-cols-2 gap-8 max-w-xs mx-auto">
+                <div className="space-y-4">
+                  <h4 className="text-xs font-black text-slate-900 flex items-center gap-2 justify-start">
+                    <div className="w-1 h-3 bg-orange-500 rounded-full" />
+                    القانونية
+                  </h4>
+                  <ul className="space-y-2 text-[11px] font-black text-slate-400 text-right">
+                    <li><Link href="/dashboard/privacy" className="hover:text-orange-500 transition-colors">الخصوصية</Link></li>
+                    <li><Link href="/dashboard/terms" className="hover:text-orange-500 transition-colors">الشروط</Link></li>
+                  </ul>
+                </div>
+                <div className="space-y-4">
+                  <h4 className="text-xs font-black text-slate-900 flex items-center gap-2 justify-start">
+                    <div className="w-1 h-3 bg-orange-500 rounded-full" />
+                    المساعدة
+                  </h4>
+                  <ul className="space-y-2 text-[11px] font-black text-slate-400 text-right">
+                    <li><Link href="/dashboard/support" className="hover:text-orange-500 transition-colors">الدعم</Link></li>
+                    <li><Link href="/dashboard/support" className="hover:text-orange-500 transition-colors">الأسئلة</Link></li>
+                  </ul>
                 </div>
               </div>
 

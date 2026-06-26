@@ -437,38 +437,36 @@ export default function LandingPage() {
 
           <footer className="mt-12 border-t border-slate-100 bg-white rounded-t-[3rem] pt-16 pb-10 px-6 font-tajawal">
             <div className="max-w-4xl mx-auto space-y-12">
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-10 text-right">
-                <div className="space-y-4 col-span-1 md:col-span-1">
-                  <div className="flex items-center gap-2">
-                    <Image src={headerLogoUrl} alt="جمهورك" width={42} height={42} className="object-contain" />
-                    <span className="text-2xl font-black text-slate-900">جمهورك</span>
-                  </div>
-                  <p className="text-sm text-slate-500 leading-relaxed font-medium">
-                    المنصة العربية الأولى والأسرع لتقديم خدمات التسويق الرقمي. نجمع بين الجودة العالية والأسعار التنافسية لضمان نمو حساباتك بشكل طبيعي وآمن.
-                  </p>
+              <div className="flex flex-col items-center text-center space-y-4">
+                <div className="flex items-center gap-2">
+                  <Image src={headerLogoUrl} alt="جمهورك" width={42} height={42} className="object-contain" />
+                  <span className="text-2xl font-black text-slate-900">جمهورك</span>
                 </div>
+                <p className="text-sm text-slate-500 leading-relaxed font-medium max-w-sm">
+                  المنصة العربية الأولى والأسرع لتقديم خدمات التسويق الرقمي. نجمع بين الجودة العالية والأسعار التنافسية لضمان نمو حساباتك بشكل طبيعي وآمن.
+                </p>
+              </div>
 
+              <div className="grid grid-cols-2 gap-8 max-w-xs mx-auto">
                 <div className="space-y-5">
-                  <h4 className="text-sm font-black text-slate-900 flex items-center gap-2">
+                  <h4 className="text-sm font-black text-slate-900 flex items-center gap-2 justify-start">
                     <div className="w-1 h-4 bg-orange-500 rounded-full" />
-                    روابط هامة
+                    روابط
                   </h4>
-                  <ul className="space-y-3 text-sm font-bold text-slate-500">
-                    <li><Link href="/register" className="hover:text-orange-500 transition-colors">سياسة الخصوصية</Link></li>
-                    <li><Link href="/register" className="hover:text-orange-500 transition-colors">شروط الخدمة</Link></li>
-                    <li><Link href="/register" className="hover:text-orange-500 transition-colors">عن جمهورك</Link></li>
+                  <ul className="space-y-3 text-sm font-bold text-slate-500 text-right">
+                    <li><Link href="/register" className="hover:text-orange-500 transition-colors">الخصوصية</Link></li>
+                    <li><Link href="/register" className="hover:text-orange-500 transition-colors">الشروط</Link></li>
                   </ul>
                 </div>
 
                 <div className="space-y-5">
-                  <h4 className="text-sm font-black text-slate-900 flex items-center gap-2">
+                  <h4 className="text-sm font-black text-slate-900 flex items-center gap-2 justify-start">
                     <div className="w-1 h-4 bg-orange-500 rounded-full" />
-                    الدعم والمساعدة
+                    المساعدة
                   </h4>
-                  <ul className="space-y-3 text-sm font-bold text-slate-500">
-                    <li><Link href="/register" className="hover:text-orange-500 transition-colors">مركز المساعدة</Link></li>
-                    <li><Link href="/register" className="hover:text-orange-500 transition-colors">الأسئلة الشائعة</Link></li>
-                    <li><a href="mailto:contact@jomhorak.com" className="hover:text-orange-500 transition-colors">تواصل معنا</a></li>
+                  <ul className="space-y-3 text-sm font-bold text-slate-500 text-right">
+                    <li><Link href="/register" className="hover:text-orange-500 transition-colors">الدعم</Link></li>
+                    <li><Link href="/register" className="hover:text-orange-500 transition-colors">الأسئلة</Link></li>
                   </ul>
                 </div>
               </div>
