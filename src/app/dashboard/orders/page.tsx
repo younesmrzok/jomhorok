@@ -67,6 +67,15 @@ export default function OrdersPage() {
     return { icon: Instagram, color: 'text-orange-500', bg: 'bg-orange-50' };
   };
 
+  const getTabButtonStyle = (tab: typeof activeTab) => {
+    return cn(
+      "rounded-xl h-10 px-6 font-black text-xs shrink-0 flex items-center gap-2 border transition-all outline-none focus:outline-none ring-0",
+      activeTab === tab 
+        ? "bg-orange-500 text-white border-orange-500 shadow-md" 
+        : "bg-white text-gray-500 border-gray-100 hover:text-orange-500 hover:bg-orange-50/50"
+    );
+  };
+
   return (
     <div className="space-y-6 pb-24 text-right" dir="rtl">
       <div className="flex items-center gap-2">
@@ -78,11 +87,11 @@ export default function OrdersPage() {
       </div>
 
       <div className="w-full px-1 overflow-x-auto scrollbar-hide flex items-center justify-start gap-2 mb-6 py-2">
-        <Button variant="ghost" onClick={() => setActiveTab('all')} className={cn("rounded-xl h-10 px-6 font-black text-xs shrink-0 flex items-center gap-2 border transition-none outline-none", activeTab === 'all' ? "bg-orange-500 text-white border-orange-500" : "bg-white text-gray-500 border-gray-100")}><ListFilter className="h-4 w-4" /> الكل</Button>
-        <Button variant="ghost" onClick={() => setActiveTab('pending_review')} className={cn("rounded-xl h-10 px-5 font-black text-xs shrink-0 flex items-center gap-2 border transition-none outline-none", activeTab === 'pending_review' ? "bg-orange-500 text-white border-orange-500" : "bg-white text-gray-500 border-gray-100")}><AlertCircle className="h-4 w-4" /> قيد المراجعة</Button>
-        <Button variant="ghost" onClick={() => setActiveTab('processing')} className={cn("rounded-xl h-10 px-5 font-black text-xs shrink-0 flex items-center gap-2 border transition-none outline-none", activeTab === 'processing' ? "bg-orange-500 text-white border-orange-500" : "bg-white text-gray-500 border-gray-100")}><Clock className="h-4 w-4" /> قيد التنفيذ</Button>
-        <Button variant="ghost" onClick={() => setActiveTab('completed')} className={cn("rounded-xl h-10 px-5 font-black text-xs shrink-0 flex items-center gap-2 border transition-none outline-none", activeTab === 'completed' ? "bg-orange-500 text-white border-orange-500" : "bg-white text-gray-500 border-gray-100")}><CheckCircle2 className="h-4 w-4" /> المكتملة</Button>
-        <Button variant="ghost" onClick={() => setActiveTab('canceled')} className={cn("rounded-xl h-10 px-5 font-black text-xs shrink-0 flex items-center gap-2 border transition-none outline-none", activeTab === 'canceled' ? "bg-orange-500 text-white border-orange-500" : "bg-white text-gray-500 border-gray-100")}><XCircle className="h-4 w-4" /> ملغي</Button>
+        <button onClick={() => setActiveTab('all')} className={getTabButtonStyle('all')}><ListFilter className="h-4 w-4" /> الكل</button>
+        <button onClick={() => setActiveTab('pending_review')} className={getTabButtonStyle('pending_review')}><AlertCircle className="h-4 w-4" /> قيد المراجعة</button>
+        <button onClick={() => setActiveTab('processing')} className={getTabButtonStyle('processing')}><Clock className="h-4 w-4" /> قيد التنفيذ</button>
+        <button onClick={() => setActiveTab('completed')} className={getTabButtonStyle('completed')}><CheckCircle2 className="h-4 w-4" /> المكتملة</button>
+        <button onClick={() => setActiveTab('canceled')} className={getTabButtonStyle('canceled')}><XCircle className="h-4 w-4" /> ملغي</button>
       </div>
 
       <div className="space-y-4 px-1">

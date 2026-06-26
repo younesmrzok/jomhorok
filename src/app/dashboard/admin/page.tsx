@@ -277,16 +277,16 @@ export default function AdminDashboard() {
       <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full" dir="rtl">
         <div className="w-full overflow-x-auto scrollbar-hide flex items-center justify-start gap-2 mb-8 py-2">
           <TabsList className="bg-transparent h-auto p-0 flex items-center gap-2 border-none">
-            <TabsTrigger value="users" className="rounded-xl h-10 px-6 font-black text-xs shrink-0 flex items-center gap-2 border transition-none outline-none data-[state=active]:bg-slate-900 data-[state=active]:text-white bg-white text-gray-600 border-gray-100 shadow-none flex-row-reverse">
+            <TabsTrigger value="users" className="rounded-xl h-10 px-6 font-black text-xs shrink-0 flex items-center gap-2 border transition-colors outline-none data-[state=active]:bg-slate-900 data-[state=active]:text-white bg-white text-gray-600 border-gray-100 shadow-none flex-row-reverse hover:text-slate-900 data-[state=active]:hover:text-white">
               <span>المستخدمين</span><Users className="h-4 w-4" />
             </TabsTrigger>
-            <TabsTrigger value="funding" className="rounded-xl h-10 px-6 font-black text-xs shrink-0 flex items-center gap-2 border transition-none outline-none data-[state=active]:bg-slate-900 data-[state=active]:text-white bg-white text-gray-600 border-gray-100 shadow-none flex-row-reverse">
+            <TabsTrigger value="funding" className="rounded-xl h-10 px-6 font-black text-xs shrink-0 flex items-center gap-2 border transition-colors outline-none data-[state=active]:bg-slate-900 data-[state=active]:text-white bg-white text-gray-600 border-gray-100 shadow-none flex-row-reverse hover:text-slate-900 data-[state=active]:hover:text-white">
               <span>الشحن</span><Wallet className="h-4 w-4" />
             </TabsTrigger>
-            <TabsTrigger value="exchange" className="rounded-xl h-10 px-6 font-black text-xs shrink-0 flex items-center gap-2 border transition-none outline-none data-[state=active]:bg-slate-900 data-[state=active]:text-white bg-white text-gray-600 border-gray-100 shadow-none flex-row-reverse">
+            <TabsTrigger value="exchange" className="rounded-xl h-10 px-6 font-black text-xs shrink-0 flex items-center gap-2 border transition-colors outline-none data-[state=active]:bg-slate-900 data-[state=active]:text-white bg-white text-gray-600 border-gray-100 shadow-none flex-row-reverse hover:text-slate-900 data-[state=active]:hover:text-white">
               <span>إعدادات الصرف</span><Coins className="h-4 w-4" />
             </TabsTrigger>
-            <TabsTrigger value="support" className="rounded-xl h-10 px-6 font-black text-xs shrink-0 flex items-center gap-2 border transition-none outline-none data-[state=active]:bg-slate-900 data-[state=active]:text-white bg-white text-gray-600 border-gray-100 shadow-none flex-row-reverse">
+            <TabsTrigger value="support" className="rounded-xl h-10 px-6 font-black text-xs shrink-0 flex items-center gap-2 border transition-colors outline-none data-[state=active]:bg-slate-900 data-[state=active]:text-white bg-white text-gray-600 border-gray-100 shadow-none flex-row-reverse hover:text-slate-900 data-[state=active]:hover:text-white">
               <span>الدعم</span><Mail className="h-4 w-4" />
             </TabsTrigger>
           </TabsList>
@@ -373,7 +373,7 @@ export default function AdminDashboard() {
                       </div>
                     </div>
                     <div className="space-y-2 bg-gray-50/50 p-5 rounded-2xl border border-gray-100">
-                      <div className="flex items-center justify-start gap-2"><span className="text-[10px] font-bold text-gray-400">المستخدم:</span><span className="text-[11px] font-black text-gray-900">{order.userName || 'مستخدم'}</span></div>
+                      <div className="flex items-center justify-start gap-2"><span className="text-offset-60 [10px] font-bold text-gray-400">المستخدم:</span><span className="text-[11px] font-black text-gray-900">{order.userName || 'مستخدم'}</span></div>
                       {order.type === 'bank' && (
                         <>
                           <div className="flex items-center justify-start gap-2"><span className="text-[10px] font-bold text-gray-400">الاسم المرسل:</span><span className="text-[11px] font-black text-gray-900">{order.senderName}</span></div>
