@@ -229,7 +229,7 @@ export default function LoginPage() {
             </CardContent>
           </Card>
 
-          <footer className="mt-12 border-t border-slate-100 bg-white rounded-t-[3rem] pt-8 pb-10 px-6 font-tajawal -mx-6 mb-[-3rem]">
+          <footer className="mt-8 border-t border-slate-100 bg-white rounded-t-[3rem] pt-8 pb-10 px-6 font-tajawal -mx-6 mb-[-3rem]">
             <div className="max-w-4xl mx-auto space-y-10">
               <div className="flex flex-col items-center text-center space-y-4">
                 <div className="flex items-center gap-2">
@@ -243,21 +243,19 @@ export default function LoginPage() {
               
               <div className="grid grid-cols-2 gap-8 max-w-xs mx-auto">
                 <div className="space-y-4">
-                  <h4 className="text-xs font-black text-slate-900 flex items-center gap-2 justify-start">
-                    <div className="w-1 h-3 bg-orange-500 rounded-full" />
+                  <h4 className="text-xs font-black text-slate-900 flex items-center justify-center">
                     القانونية
                   </h4>
-                  <ul className="space-y-2 text-[11px] font-black text-slate-400 text-right">
+                  <ul className="space-y-2 text-[11px] font-black text-slate-400 text-center">
                     <li><Link href="/dashboard/privacy" className="hover:text-orange-500 transition-colors">سياسة الخصوصية</Link></li>
                     <li><Link href="/dashboard/terms" className="hover:text-orange-500 transition-colors">شروط الخدمة</Link></li>
                   </ul>
                 </div>
                 <div className="space-y-4">
-                  <h4 className="text-xs font-black text-slate-900 flex items-center gap-2 justify-start">
-                    <div className="w-1 h-3 bg-orange-500 rounded-full" />
+                  <h4 className="text-xs font-black text-slate-900 flex items-center justify-center">
                     المساعدة
                   </h4>
-                  <ul className="space-y-2 text-[11px] font-black text-slate-400 text-right">
+                  <ul className="space-y-2 text-[11px] font-black text-slate-400 text-center">
                     <li><Link href="/dashboard/support" className="hover:text-orange-500 transition-colors">مركز الدعم</Link></li>
                     <li><Link href="/dashboard/support" className="hover:text-orange-500 transition-colors">الأسئلة الشائعة</Link></li>
                   </ul>
