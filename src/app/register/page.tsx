@@ -179,103 +179,105 @@ export default function RegisterPage() {
           </div>
         </header>
 
-        <main className="flex-1 py-12 px-6 flex flex-col">
-          <div className="flex flex-col items-center text-center gap-3 mb-10">
-            <div className="w-20 h-20 rounded-[2rem] bg-white flex items-center justify-center shadow-lg border border-gray-100 p-2">
-              <Image src={headerLogoUrl} alt="جمهورك" width={60} height={60} className="object-contain" />
+        <main className="flex-1 pt-12 flex flex-col">
+          <div className="px-6 flex flex-col flex-1">
+            <div className="flex flex-col items-center text-center gap-3 mb-10">
+              <div className="w-20 h-20 rounded-[2rem] bg-white flex items-center justify-center shadow-lg border border-gray-100 p-2">
+                <Image src={headerLogoUrl} alt="جمهورك" width={60} height={60} className="object-contain" />
+              </div>
+              <div className="space-y-1 mt-2">
+                <h1 className="text-3xl font-black text-gray-900 font-tajawal">إنشاء حساب جديد</h1>
+                <p className="text-xs font-black text-gray-400 uppercase tracking-widest font-tajawal">انضم لأكبر منصة SMM في الوطن العربي</p>
+              </div>
             </div>
-            <div className="space-y-1 mt-2">
-              <h1 className="text-3xl font-black text-gray-900 font-tajawal">إنشاء حساب جديد</h1>
-              <p className="text-xs font-black text-gray-400 uppercase tracking-widest font-tajawal">انضم لأكبر منصة SMM في الوطن العربي</p>
-            </div>
+
+            <Card className="rounded-[2.5rem] border-none shadow-[0_20px_50px_rgba(0,0,0,0.04)] bg-white overflow-hidden">
+              <CardContent className="p-8 space-y-6">
+                <div className="space-y-6">
+                  <div className="space-y-2 text-right">
+                    <div className="flex items-center gap-2 mr-1 justify-start">
+                      <User className="h-4 w-4 text-gray-400" />
+                      <Label className="text-sm font-black text-gray-900 font-tajawal uppercase">الاسم الكامل</Label>
+                    </div>
+                    <Input 
+                      placeholder="ياسين المغربي" 
+                      value={name}
+                      onChange={(e) => setName(e.target.value)}
+                      className="h-14 rounded-2xl bg-gray-50/50 border-gray-100 font-bold text-sm px-6 focus-visible:ring-orange-500 font-tajawal shadow-none text-gray-600 text-right" 
+                    />
+                  </div>
+                  
+                  <div className="space-y-2 text-right">
+                    <div className="flex items-center gap-2 mr-1 justify-start">
+                      <Users className="h-4 w-4 text-gray-400" />
+                      <Label className="text-sm font-black text-gray-900 font-tajawal uppercase">الجنس</Label>
+                    </div>
+                    <Select value={gender} onValueChange={(v: any) => setGender(v)}>
+                      <SelectTrigger className="h-14 w-full rounded-2xl bg-gray-50/50 border-gray-100 font-bold text-sm px-6 focus:ring-orange-500 shadow-none text-gray-600">
+                        <SelectValue placeholder="اختر الجنس" />
+                      </SelectTrigger>
+                      <SelectContent className="rounded-2xl border-gray-100 font-bold">
+                        <SelectItem value="male">ذكر</SelectItem>
+                        <SelectItem value="female">أنثى</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div className="space-y-2 text-right">
+                    <div className="flex items-center gap-2 mr-1 justify-start">
+                      <Mail className="h-4 w-4 text-gray-400" />
+                      <Label className="text-sm font-black text-gray-900 font-tajawal uppercase">البريد الإلكتروني</Label>
+                    </div>
+                    <Input 
+                      type="email" 
+                      placeholder="name@example.com" 
+                      value={email}
+                      onChange={(e) => setEmail(e.target.value)}
+                      className="h-14 rounded-2xl bg-gray-50/50 border-gray-100 font-bold text-sm px-6 focus-visible:ring-orange-500 font-tajawal shadow-none text-gray-600 text-right" 
+                    />
+                  </div>
+                  <div className="space-y-2 text-right">
+                    <div className="flex items-center gap-2 mr-1 justify-start">
+                      <Lock className="h-4 w-4 text-gray-400" />
+                      <Label className="text-sm font-black text-gray-900 font-tajawal uppercase">كلمة المرور</Label>
+                    </div>
+                    <div className="relative">
+                      <Input 
+                        type={showPassword ? "text" : "password"} 
+                        placeholder="••••••••" 
+                        value={password}
+                        onChange={(e) => setPassword(e.target.value)}
+                        className="h-14 rounded-2xl bg-gray-50/50 border-gray-100 font-bold text-sm pl-12 pr-6 focus-visible:ring-orange-500 font-tajawal shadow-none text-gray-600 text-right" 
+                      />
+                      <button
+                        type="button"
+                        onClick={() => setShowPassword(!showPassword)}
+                        className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 focus:outline-none transition-none"
+                      >
+                        {showPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
+                      </button>
+                    </div>
+                  </div>
+                </div>
+
+                <Button 
+                  disabled={loading}
+                  onClick={handleRegister}
+                  className="w-full h-14 rounded-2xl orange-gradient text-white font-black text-lg shadow-lg shadow-orange-500/30 border-none select-none font-tajawal gap-3"
+                >
+                  {loading ? <Loader2 className="h-6 w-6 animate-spin" /> : <UserPlus className="h-6 w-6" />}
+                  <span>{loading ? "جاري إنشاء الحساب..." : "إنشاء الحساب"}</span>
+                </Button>
+
+                <div className="text-center pt-2">
+                  <Link href="/login" className="text-[11px] font-black text-gray-600 uppercase tracking-widest font-tajawal inline-block">
+                    لديك حساب بالفعل؟ <span className="text-orange-500 font-black">تسجيل الدخول</span>
+                  </Link>
+                </div>
+              </CardContent>
+            </Card>
           </div>
 
-          <Card className="rounded-[2.5rem] border-none shadow-[0_20px_50px_rgba(0,0,0,0.04)] bg-white overflow-hidden">
-            <CardContent className="p-8 space-y-6">
-              <div className="space-y-6">
-                <div className="space-y-2 text-right">
-                  <div className="flex items-center gap-2 mr-1 justify-start">
-                    <User className="h-4 w-4 text-gray-400" />
-                    <Label className="text-sm font-black text-gray-900 font-tajawal uppercase">الاسم الكامل</Label>
-                  </div>
-                  <Input 
-                    placeholder="ياسين المغربي" 
-                    value={name}
-                    onChange={(e) => setName(e.target.value)}
-                    className="h-14 rounded-2xl bg-gray-50/50 border-gray-100 font-bold text-sm px-6 focus-visible:ring-orange-500 font-tajawal shadow-none text-gray-600 text-right" 
-                  />
-                </div>
-                
-                <div className="space-y-2 text-right">
-                  <div className="flex items-center gap-2 mr-1 justify-start">
-                    <Users className="h-4 w-4 text-gray-400" />
-                    <Label className="text-sm font-black text-gray-900 font-tajawal uppercase">الجنس</Label>
-                  </div>
-                  <Select value={gender} onValueChange={(v: any) => setGender(v)}>
-                    <SelectTrigger className="h-14 w-full rounded-2xl bg-gray-50/50 border-gray-100 font-bold text-sm px-6 focus:ring-orange-500 shadow-none text-gray-600">
-                      <SelectValue placeholder="اختر الجنس" />
-                    </SelectTrigger>
-                    <SelectContent className="rounded-2xl border-gray-100 font-bold">
-                      <SelectItem value="male">ذكر</SelectItem>
-                      <SelectItem value="female">أنثى</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-                <div className="space-y-2 text-right">
-                  <div className="flex items-center gap-2 mr-1 justify-start">
-                    <Mail className="h-4 w-4 text-gray-400" />
-                    <Label className="text-sm font-black text-gray-900 font-tajawal uppercase">البريد الإلكتروني</Label>
-                  </div>
-                  <Input 
-                    type="email" 
-                    placeholder="name@example.com" 
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
-                    className="h-14 rounded-2xl bg-gray-50/50 border-gray-100 font-bold text-sm px-6 focus-visible:ring-orange-500 font-tajawal shadow-none text-gray-600 text-right" 
-                  />
-                </div>
-                <div className="space-y-2 text-right">
-                  <div className="flex items-center gap-2 mr-1 justify-start">
-                    <Lock className="h-4 w-4 text-gray-400" />
-                    <Label className="text-sm font-black text-gray-900 font-tajawal uppercase">كلمة المرور</Label>
-                  </div>
-                  <div className="relative">
-                    <Input 
-                      type={showPassword ? "text" : "password"} 
-                      placeholder="••••••••" 
-                      value={password}
-                      onChange={(e) => setPassword(e.target.value)}
-                      className="h-14 rounded-2xl bg-gray-50/50 border-gray-100 font-bold text-sm pl-12 pr-6 focus-visible:ring-orange-500 font-tajawal shadow-none text-gray-600 text-right" 
-                    />
-                    <button
-                      type="button"
-                      onClick={() => setShowPassword(!showPassword)}
-                      className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 focus:outline-none transition-none"
-                    >
-                      {showPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
-                    </button>
-                  </div>
-                </div>
-              </div>
-
-              <Button 
-                disabled={loading}
-                onClick={handleRegister}
-                className="w-full h-14 rounded-2xl orange-gradient text-white font-black text-lg shadow-lg shadow-orange-500/30 border-none select-none font-tajawal gap-3"
-              >
-                {loading ? <Loader2 className="h-6 w-6 animate-spin" /> : <UserPlus className="h-6 w-6" />}
-                <span>{loading ? "جاري إنشاء الحساب..." : "إنشاء الحساب"}</span>
-              </Button>
-
-              <div className="text-center pt-2">
-                <Link href="/login" className="text-[11px] font-black text-gray-600 uppercase tracking-widest font-tajawal inline-block">
-                  لديك حساب بالفعل؟ <span className="text-orange-500 font-black">تسجيل الدخول</span>
-                </Link>
-              </div>
-            </CardContent>
-          </Card>
-
-          <footer className="mt-8 border-t border-slate-100 bg-white rounded-t-[3rem] pt-8 pb-10 px-6 font-tajawal -mx-6 mb-[-3rem]">
+          <footer className="mt-12 border-t border-slate-100 bg-white rounded-t-[3rem] pt-8 pb-10 px-6 font-tajawal">
             <div className="max-w-4xl mx-auto space-y-10">
               <div className="flex flex-col items-center text-center space-y-4">
                 <div className="flex items-center gap-2">

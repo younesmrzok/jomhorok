@@ -78,7 +78,7 @@ export function MainLayout({ children }: { children: React.ReactNode }) {
 
   if (!mounted) {
     return (
-      <div className="flex flex-col min-h-screen bg-[#F8F9FA] pb-20 text-right" dir="rtl" style={{ fontFamily: "'Tajawal', sans-serif" }}>
+      <div className="flex flex-col min-h-screen bg-[#F8F9FA] text-right" dir="rtl" style={{ fontFamily: "'Tajawal', sans-serif" }}>
         <header className="h-16 px-4 flex items-center justify-between sticky top-0 bg-white z-40 border-b border-gray-100">
            <div className="text-orange-500 h-[38px] w-[38px] flex items-center justify-center bg-white border border-orange-100 rounded-xl"><Menu className="h-6 w-6" /></div>
            <div className="flex items-center gap-2">
@@ -87,15 +87,17 @@ export function MainLayout({ children }: { children: React.ReactNode }) {
            </div>
            <div className="w-20" />
         </header>
-        <main className="flex-1 px-4 py-6 max-w-lg mx-auto w-full flex flex-col">
-          {children}
+        <main className="flex-1 max-w-lg mx-auto w-full flex flex-col">
+          <div className="flex-1 px-4 py-6">
+            {children}
+          </div>
         </main>
       </div>
     );
   }
 
   return (
-    <div className="flex flex-col min-h-screen bg-[#F8F9FA] pb-20 text-right" dir="rtl" style={{ fontFamily: "'Tajawal', sans-serif" }}>
+    <div className="flex flex-col min-h-screen bg-[#F8F9FA] text-right" dir="rtl" style={{ fontFamily: "'Tajawal', sans-serif" }}>
       <header className="h-16 px-4 flex items-center justify-between sticky top-0 bg-white z-40 border-b border-gray-100">
         <Sheet open={open} onOpenChange={setOpen}>
           <SheetTrigger asChild>
@@ -210,12 +212,12 @@ export function MainLayout({ children }: { children: React.ReactNode }) {
         </div>
       </header>
 
-      <main className="flex-1 px-4 py-6 max-w-lg mx-auto w-full flex flex-col">
-        <div className="flex-1">
+      <main className="flex-1 max-w-lg mx-auto w-full flex flex-col">
+        <div className="flex-1 px-4 py-6">
           {children}
         </div>
 
-        <footer className="mt-8 border-t border-slate-100 bg-white rounded-t-[3rem] pt-8 pb-4 px-6 font-tajawal -mx-4">
+        <footer className="border-t border-slate-100 bg-white rounded-t-[3rem] pt-8 pb-28 px-6 font-tajawal">
           <div className="max-w-4xl mx-auto space-y-10">
             <div className="flex flex-col items-center text-center space-y-4">
               <div className="flex items-center gap-2">
