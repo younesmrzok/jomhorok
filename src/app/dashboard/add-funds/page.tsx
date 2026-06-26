@@ -97,10 +97,10 @@ export default function AddFundsPage() {
   };
 
   const bankMethods = [
-    { id: 'attijari', name: 'التجاري وفا بنك', logo: 'AWB', image: '/attijari.jpg', color: 'text-amber-600', bg: 'bg-white', border: 'border-amber-200', account: '007 810 0000000000000000 00', holder: 'Jomhorak Admin', isAvailable: true },
+    { id: 'attijari', name: 'التجاري وفا بنك', logo: 'AWB', image: '/attijari.jpg', color: 'text-amber-600', bg: 'bg-white', border: 'border-amber-200', account: '007590000817230040234264', holder: 'Younes', isAvailable: true },
     { id: 'cih', name: 'CIH Bank', logo: 'CIH', image: '/cih.png', color: 'text-slate-400', bg: 'bg-white', border: 'border-gray-100', account: '', holder: '', isAvailable: false },
     { id: 'barid', name: 'بريد بنك', logo: 'AL BARID', image: '/baridbank.jpg', color: 'text-slate-400', bg: 'bg-white', border: 'border-gray-100', account: '', holder: '', isAvailable: false },
-    { id: 'cashplus', name: 'كاش بليس', logo: 'CASH PLUS', image: '/cachplus.jpeg', color: 'text-orange-600', bg: 'bg-white', border: 'border-orange-200', account: '0600000000', holder: 'محمد أمين', isAvailable: true },
+    { id: 'cashplus', name: 'كاش بليس', logo: 'CASH PLUS', image: '/cachplus.jpeg', color: 'text-orange-600', bg: 'bg-white', border: 'border-orange-200', account: '835780030017743059590126', holder: 'Younes', isAvailable: true },
   ];
 
   const voucherMethods = [
