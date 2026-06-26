@@ -76,13 +76,22 @@
 .tajawal-extrabold { font-family: "Tajawal", sans-serif; font-weight: 800; }
 .tajawal-black { font-family: "Tajawal", sans-serif; font-weight: 900; }
 
-/* Google reCAPTCHA v3 Badge Fix */
+/* Google reCAPTCHA v3 Badge Control */
 .grecaptcha-badge {
   z-index: 10000 !important;
-  visibility: visible !important;
+  visibility: hidden !important;
+  opacity: 0 !important;
+  pointer-events: none !important;
   display: block !important;
   bottom: 25px !important;
-  transition: all 0.3s ease !important;
+  transition: opacity 0.3s ease, visibility 0.3s ease !important;
+}
+
+/* Show only when class is present on body */
+body.show-captcha .grecaptcha-badge {
+  visibility: visible !important;
+  opacity: 1 !important;
+  pointer-events: auto !important;
 }
 
 /* Prevent horizontal clipping on mobile */

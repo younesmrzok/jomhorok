@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { Card, CardContent } from '@/components/ui/card';
 import { Label } from '@/components/ui/label';
@@ -46,6 +46,13 @@ export default function RegisterPage() {
   const [loading, setLoading] = useState(false);
   const { toast } = useToast();
   const router = useRouter();
+
+  useEffect(() => {
+    document.body.classList.add('show-captcha');
+    return () => {
+      document.body.classList.remove('show-captcha');
+    };
+  }, []);
 
   const headerLogoUrl = "/logo1.png";
   const sidebarLogoUrl = "/logo2.png";
