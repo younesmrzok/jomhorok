@@ -68,7 +68,6 @@ export function MainLayout({ children }: { children: React.ReactNode }) {
   const getAvatarUrl = () => {
     if (loading || !userData?.gender) return null;
     
-    // تأكيد صارم: female -> أنثى، male -> ذكر
     if (userData.gender === 'female') {
       return `https://api.dicebear.com/7.x/avataaars/svg?seed=female_jomhorak_v3&skinColor=fbe0d0&topType=longHair,bob,curly,curvy,hijab,turban&accessoriesType=none&clotheType=overall,blazerAndShirt&eyeType=default&mouthType=smile`;
     }
@@ -216,43 +215,51 @@ export function MainLayout({ children }: { children: React.ReactNode }) {
           {children}
         </div>
 
-        <footer className="px-6 py-10 border-t border-gray-100 bg-gray-50/30 space-y-8 rounded-t-[2.5rem] mt-24 font-tajawal -mx-4">
-          <div className="flex flex-col items-center text-center space-y-4">
-            <div className="flex items-center gap-2">
-              <Image src={headerLogoUrl} alt="جمهورك" width={40} height={40} className="object-contain" />
-              <span className="text-xl font-black text-gray-900">جمهورك</span>
+        <footer className="mt-20 border-t border-slate-100 bg-white rounded-t-[3rem] pt-16 pb-10 px-6 font-tajawal -mx-4">
+          <div className="max-w-4xl mx-auto space-y-12">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-10 text-right">
+              <div className="space-y-4">
+                <div className="flex items-center gap-2">
+                  <Image src={headerLogoUrl} alt="جمهورك" width={38} height={38} className="object-contain" />
+                  <span className="text-xl font-black text-slate-900">جمهورك</span>
+                </div>
+                <p className="text-xs text-slate-500 leading-relaxed font-bold">
+                  المنصة الأسرع والأرخص لخدمات التسويق الرقمي في الوطن العربي. جودة مضمونة ودعم فني على مدار الساعة.
+                </p>
+              </div>
+              
+              <div className="grid grid-cols-2 gap-8">
+                <div className="space-y-4">
+                  <h4 className="text-xs font-black text-slate-900 flex items-center gap-2">
+                    <div className="w-1 h-3 bg-orange-500 rounded-full" />
+                    القانونية
+                  </h4>
+                  <ul className="space-y-2 text-[11px] font-black text-slate-400">
+                    <li><Link href="/dashboard/privacy" className="hover:text-orange-500 transition-colors">سياسة الخصوصية</Link></li>
+                    <li><Link href="/dashboard/terms" className="hover:text-orange-500 transition-colors">شروط الخدمة</Link></li>
+                  </ul>
+                </div>
+                <div className="space-y-4">
+                  <h4 className="text-xs font-black text-slate-900 flex items-center gap-2">
+                    <div className="w-1 h-3 bg-orange-500 rounded-full" />
+                    المساعدة
+                  </h4>
+                  <ul className="space-y-2 text-[11px] font-black text-slate-400">
+                    <li><Link href="/dashboard/support" className="hover:text-orange-500 transition-colors">مركز الدعم</Link></li>
+                    <li><Link href="/dashboard/support" className="hover:text-orange-500 transition-colors">الأسئلة الشائعة</Link></li>
+                  </ul>
+                </div>
+              </div>
             </div>
-            <p className="text-[10px] text-gray-400 font-black max-w-[250px] leading-relaxed">
-              المنصة الأسرع والأرخص لخدمات التسويق الرقمي في الوطن العربي. جودة مضمونة ودعم فني على مدار الساعة.
-            </p>
-          </div>
 
-          <div className="grid grid-cols-2 gap-8 px-4 text-center">
-            <div className="space-y-3">
-              <h4 className="text-[11px] font-black text-gray-400 uppercase tracking-widest">روابط سريعة</h4>
-              <ul className="space-y-2 text-[11px] font-black text-gray-600">
-                <li><Link href="/dashboard/privacy">سياسة الخصوصية</Link></li>
-                <li><Link href="/dashboard/terms">شروط الخدمة</Link></li>
-              </ul>
-            </div>
-            <div className="space-y-3">
-              <h4 className="text-[11px] font-black text-gray-400 uppercase tracking-widest">المساعدة</h4>
-              <ul className="space-y-2 text-[11px] font-black text-gray-600">
-                <li><Link href="/dashboard/support">مركز الدعم</Link></li>
-                <li><Link href="/dashboard/support">الأسئلة الشائعة</Link></li>
-              </ul>
-            </div>
-          </div>
-
-          <div className="pt-6 border-t border-gray-100 text-center space-y-4">
-            <div className="space-y-2">
-              <div className="inline-flex items-center gap-1.5 text-[10px] font-black text-gray-400 bg-gray-50 px-3 py-1 rounded-full border border-gray-100 select-none">
+            <div className="pt-8 border-t border-slate-50 flex flex-col items-center gap-4 text-center">
+              <div className="inline-flex items-center gap-1.5 text-[10px] font-black text-slate-400 bg-slate-50 px-4 py-1.5 rounded-full border border-slate-100">
                 <span>صنع بكل</span>
-                <Heart className="h-3 w-3 text-red-500 fill-red-500" />
+                <Heart className="h-3 w-3 text-rose-500 fill-rose-500 animate-pulse" />
                 <span>للمستخدم العربي</span>
               </div>
-              <p className="text-[9px] text-gray-300 font-bold uppercase tracking-widest select-none">
-                &copy; 2026 جميع الحقوق محفوظة لجمهورك (Jomhorak.com)
+              <p className="text-[9px] text-slate-300 font-bold uppercase tracking-widest">
+                &copy; 2026 جميع الحقوق محفوظة لجمهورك (JOMHORAK.COM)
               </p>
             </div>
           </div>
