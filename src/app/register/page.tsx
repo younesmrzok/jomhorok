@@ -102,7 +102,9 @@ export default function RegisterPage() {
       } else if (error.code === 'auth/invalid-email') {
         message = "يرجى إدخال بريد إلكتروني صحيح.";
       } else if (error.code === 'auth/weak-password') {
-        message = "كلمة المرور ضعيفة جداً.";
+        message = "كلمة المرور ضعيفة جداً. يجب أن تكون 6 أحرف على الأقل.";
+      } else if (error.code === 'auth/network-request-failed') {
+        message = "فشل الاتصال بالإنترنت. تأكد من جودة اتصالك.";
       }
       
       toast({ variant: "destructive", title: "فشل التسجيل", description: message });

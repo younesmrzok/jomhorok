@@ -72,7 +72,24 @@ export default function LoginPage() {
       router.push('/dashboard');
     } catch (error: any) {
       console.error("Login Error:", error);
-      toast({ variant: "destructive", title: "فشل الدخول", description: error.message || "البريد الإلكتروني أو كلمة المرور غير صحيحة." });
+      
+      let message = "البريد الإلكتروني أو كلمة المرور غير صحيحة.";
+      
+      if (error.code === 'auth/user-not-found' || error.code === 'auth/wrong-password' || error.code === 'auth/invalid-credential') {
+        message = "البريد الإلكتروني أو كلمة المرور غير صحيحة.";
+      } else if (error.code === 'auth/too-many-requests') {
+        message = "تم حظر الدخول مؤقتاً بسبب كثرة المحاولات الخاطئة. حاول مجدداً بعد قليل.";
+      } else if (error.code === 'auth/user-disabled') {
+        message = "هذا الحساب معطل حالياً. يرجى التواصل مع الدعم.";
+      } else if (error.code === 'auth/invalid-email') {
+        message = "البريد الإلكتروني المدخل غير صالح.";
+      } else if (error.code === 'auth/network-request-failed') {
+        message = "فشل الاتصال بالإنترنت. تأكد من جودة اتصالك.";
+      } else if (error.message && error.message.includes('reCAPTCHA')) {
+        message = error.message;
+      }
+      
+      toast({ variant: "destructive", title: "فشل الدخول", description: message });
     } finally {
       setLoading(false);
     }
