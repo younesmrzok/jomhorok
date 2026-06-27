@@ -55,17 +55,14 @@ export default function DashboardOverview() {
   const cachedAll = getPaginatedCache('homeAllOrders') || [];
   
   const [recentOrders, setRecentOrders] = useState<any[]>(cachedRecent);
-  const [allOrders, setAllOrders] = useState<any[]>(cachedAll);
-  const [dataLoading, setDataLoading] = useState(allOrders.length === 0);
+  const [dataLoading, setDataLoading] = useState(cachedRecent.length === 0);
 
   useEffect(() => {
     if (!user || authLoading) return;
 
     const unsubscribe = getUserOrdersStream(user.uid, (data) => {
-      // Ensure we sort by date descending
       const sortedData = [...data].sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
       
-      setAllOrders(sortedData);
       updatePaginatedCache('homeAllOrders', sortedData);
       
       const top3 = sortedData.slice(0, 3);
@@ -79,31 +76,6 @@ export default function DashboardOverview() {
       if (unsubscribe) unsubscribe();
     };
   }, [user, authLoading]);
-
-  const stats = useMemo(() => {
-    // 1. أنفقت معنا: الطلبات المكتملة فقط
-    const totalSpent = allOrders
-      .filter(o => o.status === 'مكتمل' || o.status === 'Completed')
-      .reduce((acc, order) => acc + (Number(order.price) || 0), 0);
-    
-    // 2. جاري استخدامه: يشمل المعالجة والتنفيذ والمراجعة (لحماية البيانات القديمة)
-    const inProcessing = allOrders
-      .filter(o => 
-        o.status === 'قيد التنفيذ' || 
-        o.status === 'قيد المعالجة' || 
-        o.status === 'قيد المراجعة' ||
-        o.status === 'In progress' ||
-        o.status === 'Pending' ||
-        o.status === 'Processing'
-      )
-      .reduce((acc, order) => acc + (Number(order.price) || 0), 0);
-    
-    return {
-      totalSpent,
-      inProcessing,
-      availableBalance: userData?.balance || 0
-    };
-  }, [allOrders, userData]);
 
   const formatBalance = (val: number) => {
     return Number(val || 0).toFixed(2);
@@ -120,24 +92,25 @@ export default function DashboardOverview() {
     return { icon: Instagram, color: 'text-orange-500', bg: 'bg-orange-50' };
   };
 
+  // Now using dedicated database fields for instant display
   const balances = [
     { 
       label: 'أنفقت معنا', 
-      value: formatBalance(stats.totalSpent), 
+      value: formatBalance(userData?.totalSpent || 0), 
       icon: TrendingDown, 
       textColor: 'text-orange-500', 
       bg: 'bg-gray-50/80' 
     },
     { 
       label: 'جاري استخدامه', 
-      value: formatBalance(stats.inProcessing), 
+      value: formatBalance(userData?.inProcessing || 0), 
       icon: Clock, 
       textColor: 'text-orange-500', 
       bg: 'bg-gray-50/80' 
     },
     { 
       label: 'رصيدك الآن', 
-      value: formatBalance(stats.availableBalance), 
+      value: formatBalance(userData?.balance || 0), 
       icon: Wallet, 
       textColor: 'text-orange-500', 
       bg: 'bg-gray-50/80' 

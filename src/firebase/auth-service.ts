@@ -24,6 +24,8 @@ export const registerUser = async (email: string, password: string, additionalDa
     name: additionalData.name,
     gender: additionalData.gender,
     balance: 0,
+    totalSpent: 0,
+    inProcessing: 0,
     isAdmin: false,
     createdAt: new Date().toISOString()
   });

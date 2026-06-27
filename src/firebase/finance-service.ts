@@ -61,8 +61,10 @@ export async function placeOrder(uid: string, orderData: {
         throw new Error("فشل الحصول على رقم الطلب من المزود");
       }
 
+      // Deduct balance and increment processing stats in DB
       transaction.update(userRef, {
-        balance: increment(-orderData.price)
+        balance: increment(-orderData.price),
+        inProcessing: increment(orderData.price)
       });
 
       const orderRef = doc(collection(db, "orders"));
@@ -90,6 +92,7 @@ export async function placeOrder(uid: string, orderData: {
 
 /**
  * Syncs user's active orders with the provider using strict mapping.
+ * Also updates user's summary stats (totalSpent, inProcessing) based on status changes.
  */
 export async function syncUserOrdersStatus(uid: string) {
   if (!uid) return;
@@ -116,34 +119,32 @@ export async function syncUserOrdersStatus(uid: string) {
     const statuses = await smmOrdersStatus(apiOrderIds);
     if (!statuses || statuses.error) return;
 
+    const userRef = doc(db, "users", uid);
     const batch = writeBatch(db);
     let hasChanges = false;
+    
+    let statsAdjust_inProcessing = 0;
+    let statsAdjust_totalSpent = 0;
 
     /**
      * Strict Mapping Table for Jomhorak.com
-     * - Pending/Waiting/Processing -> "قيد المعالجة" (System work)
-     * - In Progress -> "قيد التنفيذ" (Active delivery)
-     * - Completed/Partial -> "مكتمل"
-     * - Canceled/Refunded -> "ملغي"
      */
     const statusMap: Record<string, string> = {
       'pending': 'قيد المعالجة',
       'waiting': 'قيد المعالجة',
       'processing': 'قيد المعالجة',
       'in progress': 'قيد التنفيذ',
-      'inprogress': 'قيد التنفيذ',
       'completed': 'مكتمل',
       'partial': 'مكتمل',
-      'done': 'مكتمل',
       'canceled': 'ملغي',
-      'cancelled': 'ملغي',
-      'refunded': 'ملغي',
-      'failed': 'ملغي'
+      'refunded': 'ملغي'
     };
 
     activeOrders.forEach(orderDoc => {
-      const apiId = orderDoc.data().apiOrderId;
-      const currentLocalStatus = orderDoc.data().status;
+      const orderData = orderDoc.data();
+      const apiId = orderData.apiOrderId;
+      const currentLocalStatus = orderData.status;
+      const orderPrice = Number(orderData.price) || 0;
       const apiData = statuses[apiId];
       
       if (apiData && apiData.status) {
@@ -153,15 +154,25 @@ export async function syncUserOrdersStatus(uid: string) {
         if (mappedStatus && mappedStatus !== currentLocalStatus) {
           batch.update(orderDoc.ref, { status: mappedStatus });
           hasChanges = true;
+
+          // Logic to update user stats
+          // If status moved to finalized states (completed/partial or canceled/refunded)
+          if (mappedStatus === 'مكتمل') {
+            statsAdjust_inProcessing -= orderPrice;
+            statsAdjust_totalSpent += orderPrice;
+          } else if (mappedStatus === 'ملغي') {
+            statsAdjust_inProcessing -= orderPrice;
+          }
         }
-      } else if (currentLocalStatus === 'قيد المراجعة') {
-        // Migration: Fix legacy status naming
-        batch.update(orderDoc.ref, { status: 'قيد المعالجة' });
-        hasChanges = true;
       }
     });
 
     if (hasChanges) {
+      // Apply stats adjustments to user doc
+      batch.update(userRef, {
+        inProcessing: increment(statsAdjust_inProcessing),
+        totalSpent: increment(statsAdjust_totalSpent)
+      });
       await batch.commit();
     }
   } catch (error) {

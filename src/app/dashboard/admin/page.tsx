@@ -360,7 +360,7 @@ export default function AdminDashboard() {
           <TabsContent value="funding" className="space-y-6 mt-6 outline-none">
             {initialLoading && shippingsState.items.length === 0 ? (
               <div className="py-20 flex justify-center"><Loader2 className="h-10 w-10 animate-spin text-slate-900" /></div>
-            ) : (
+            ) : shippingsState.items.length > 0 ? (
               <div className="space-y-4">
                 {shippingsState.items.map((order: any) => (
                   <Card key={order.id} className="rounded-[2.2rem] border-none shadow-sm bg-white overflow-hidden">
@@ -414,6 +414,13 @@ export default function AdminDashboard() {
                     <span>عرض المزيد</span>
                   </button>
                 )}
+              </div>
+            ) : (
+              <div className="py-20 text-center flex flex-col items-center gap-3">
+                <div className="w-16 h-16 rounded-[1.8rem] bg-gray-50 flex items-center justify-center border border-gray-100 mb-2">
+                  <Wallet className="h-8 w-8 text-gray-200" />
+                </div>
+                <p className="text-xs font-black text-gray-300">لا توجد طلبات شحن حالياً.</p>
               </div>
             )}
           </TabsContent>
