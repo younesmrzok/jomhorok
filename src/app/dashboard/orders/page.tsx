@@ -36,20 +36,34 @@ export default function OrdersPage() {
   const cachedOrders = getPaginatedCache('userOrders')?.items || [];
   const [orders, setOrders] = useState<any[]>(cachedOrders);
   const [loading, setLoading] = useState(cachedOrders.length === 0);
-  const { user } = useAuth();
+  const { user, loading: authLoading } = useAuth();
 
   useEffect(() => {
+    // If auth check is done and no user exists, stop loading
+    if (!authLoading && !user) {
+      setLoading(false);
+      return;
+    }
+
     if (!user) return;
 
-    // We only show loading if we don't have cached data
+    // Start order listener
     const unsubscribe = getUserOrdersStream(user.uid, (data) => {
       setOrders(data);
       updatePaginatedCache('userOrders', { items: data, lastVisible: null, hasMore: false });
       setLoading(false);
     });
 
-    return () => unsubscribe();
-  }, [user]);
+    // Safety timeout: ensure loading stops after 4 seconds even if firestore is slow
+    const timer = setTimeout(() => {
+      setLoading(false);
+    }, 4000);
+
+    return () => {
+      unsubscribe();
+      clearTimeout(timer);
+    };
+  }, [user, authLoading]);
 
   const filteredOrders = orders.filter((order: any) => {
     if (activeTab === 'all') return true;
