@@ -119,11 +119,17 @@ export async function syncUserOrdersStatus(uid: string) {
     const batch = writeBatch(db);
     let hasChanges = false;
 
-    // Strict Mapping Table
+    /**
+     * Strict Mapping Table for Jomhorak.com
+     * - Pending/Waiting/Processing -> "قيد المعالجة" (System work)
+     * - In Progress -> "قيد التنفيذ" (Active delivery)
+     * - Completed/Partial -> "مكتمل"
+     * - Canceled/Refunded -> "ملغي"
+     */
     const statusMap: Record<string, string> = {
       'pending': 'قيد المعالجة',
       'waiting': 'قيد المعالجة',
-      'processing': 'قيد التنفيذ',
+      'processing': 'قيد المعالجة',
       'in progress': 'قيد التنفيذ',
       'inprogress': 'قيد التنفيذ',
       'completed': 'مكتمل',
@@ -149,7 +155,7 @@ export async function syncUserOrdersStatus(uid: string) {
           hasChanges = true;
         }
       } else if (currentLocalStatus === 'قيد المراجعة') {
-        // Migration: If we find a legacy status that didn't match, move it to 'Under Processing'
+        // Migration: Fix legacy status naming
         batch.update(orderDoc.ref, { status: 'قيد المعالجة' });
         hasChanges = true;
       }

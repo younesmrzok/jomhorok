@@ -63,9 +63,16 @@ export default function DashboardOverview() {
       }
       
       try {
-        const result = await getPaginatedDocs('orders', 3, null, [where('userId', '==', user.uid)]);
-        setOrders(result.docs);
-        updatePaginatedCache('homeRecentOrders', result.docs);
+        // Fetch 3 recent orders
+        const result = await getPaginatedDocs('orders', 3, null, [where('userId', '==', user.uid)], "createdAt");
+        
+        // Extra explicit sort in frontend to guarantee newest first
+        const sortedDocs = [...result.docs].sort((a, b) => 
+          new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+        );
+
+        setOrders(sortedDocs);
+        updatePaginatedCache('homeRecentOrders', sortedDocs);
       } catch (error) {
         console.error("Error loading home orders:", error);
       } finally {
@@ -144,6 +151,11 @@ export default function DashboardOverview() {
 
   return (
     <div className="flex flex-col gap-8 pb-10" dir="rtl">
+      <div className="flex items-center gap-2 mb-2">
+        <div className="w-4 h-1 bg-orange-500 rounded-full" />
+        <h1 className="text-xl font-black text-gray-900">نظرة عامة</h1>
+      </div>
+
       <Card className="border-none shadow-[0_20px_50px_rgba(0,0,0,0.04)] overflow-hidden bg-white rounded-[2.5rem]">
         <CardContent className="p-6">
           <div className="grid grid-cols-3 gap-2 text-center mb-10 select-none">
