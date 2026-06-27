@@ -1,7 +1,6 @@
 "use client";
 
 import { useState, useEffect } from 'react';
-import { Button } from '@/components/ui/button';
 import { 
   ArrowRight, 
   Instagram, 
@@ -33,36 +32,34 @@ const XIcon = ({ className }: { className?: string }) => (
 
 export default function OrdersPage() {
   const [activeTab, setActiveTab] = useState<'all' | 'pending_review' | 'processing' | 'completed' | 'canceled'>('all');
+  
+  // Initial state from cache if available to prevent layout shift
   const cachedOrders = getPaginatedCache('userOrders')?.items || [];
   const [orders, setOrders] = useState<any[]>(cachedOrders);
+  
+  // Only show loader if we have NO cached data and we are waiting for first snapshot
   const [loading, setLoading] = useState(cachedOrders.length === 0);
   const { user, loading: authLoading } = useAuth();
 
   useEffect(() => {
-    if (!authLoading && !user) {
+    if (authLoading) return;
+    if (!user) {
       setLoading(false);
       return;
     }
 
-    if (!user) return;
-
-    // Start background sync with provider
+    // 1. Run background synchronization with Provider
     syncUserOrdersStatus(user.uid);
 
-    // Start real-time order listener
+    // 2. Setup real-time listener (Single Source of Truth)
     const unsubscribe = getUserOrdersStream(user.uid, (data) => {
       setOrders(data);
       updatePaginatedCache('userOrders', { items: data, lastVisible: null, hasMore: false });
-      setLoading(false);
+      setLoading(false); // Stop loading once first batch of data arrives
     });
 
-    const timer = setTimeout(() => {
-      setLoading(false);
-    }, 4000);
-
     return () => {
-      unsubscribe();
-      clearTimeout(timer);
+      if (unsubscribe) unsubscribe();
     };
   }, [user, authLoading]);
 
@@ -123,7 +120,7 @@ export default function OrdersPage() {
                 const platformInfo = getPlatformIcon(order.platform);
                 const Icon = platformInfo.icon;
                 return (
-                  <div key={idx} className="bg-white p-5 rounded-[2.5rem] border border-gray-50 shadow-sm flex flex-col gap-4 relative overflow-hidden">
+                  <div key={order.id || idx} className="bg-white p-5 rounded-[2.5rem] border border-gray-50 shadow-sm flex flex-col gap-4 relative overflow-hidden animate-in fade-in slide-in-from-bottom-2 duration-300">
                     <div className="flex items-center justify-between">
                       <div className="flex items-center gap-3">
                         <div className={cn("w-10 h-10 rounded-xl flex items-center justify-center shadow-sm", platformInfo.bg)}><Icon className={cn("h-5 w-5", platformInfo.color)} /></div>
@@ -142,8 +139,8 @@ export default function OrdersPage() {
                     </div>
                     <h4 className="text-[12px] font-black text-gray-800 leading-tight pr-1 line-clamp-1">{order.title}</h4>
                     <div className="flex items-center justify-between pt-2 border-t border-gray-50">
-                      <div className="flex flex-col"><span className="text-[9px] font-bold text-gray-400 uppercase tracking-tight">المبلغ الإجمالي</span><span className="text-lg font-black text-green-600">${order.price.toFixed(2)}</span></div>
-                      <a href={order.link.startsWith('http') ? order.link : `https://${order.link}`} target="_blank" rel="noopener noreferrer" className="flex items-center gap-1.5 text-orange-500 font-black text-[10px] px-3 py-2">انتقال للرابط <ArrowUpRight className="h-3 w-3" /></a>
+                      <div className="flex flex-col"><span className="text-[9px] font-bold text-gray-400 uppercase tracking-tight">المبلغ الإجمالي</span><span className="text-lg font-black text-green-600">${order.price?.toFixed(2) || '0.00'}</span></div>
+                      <a href={order.link?.startsWith('http') ? order.link : `https://${order.link}`} target="_blank" rel="noopener noreferrer" className="flex items-center gap-1.5 text-orange-500 font-black text-[10px] px-3 py-2">انتقال للرابط <ArrowUpRight className="h-3 w-3" /></a>
                     </div>
                   </div>
                 );

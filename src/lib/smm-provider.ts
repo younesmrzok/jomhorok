@@ -69,8 +69,8 @@ export async function smmOrder(data: { service: number, link: string, quantity: 
  * Fetches statuses for multiple orders from the provider.
  */
 export async function smmOrdersStatus(orderIds: string): Promise<any> {
-  if (!API_KEY) {
-    return { error: "إعدادات المزود غير مكتملة (API Key مفقود)" };
+  if (!API_KEY || !orderIds) {
+    return { error: "بيانات غير مكتملة للمزامنة" };
   }
 
   try {
@@ -88,11 +88,13 @@ export async function smmOrdersStatus(orderIds: string): Promise<any> {
       cache: 'no-store',
     });
 
+    if (!response.ok) throw new Error("API Response not OK");
+
     const result = await response.json();
     return result;
   } catch (error) {
     console.error("SMM Status Fetch Error:", error);
-    return { error: "فشل تحديث حالة الطلبات" };
+    return { error: "فشل تحديث حالة الطلبات من المزود" };
   }
 }
 
@@ -161,7 +163,6 @@ export async function smmServicesByPlatform(platformId: string): Promise<SmmServ
     if (!config) return [];
 
     return allServices.filter((s) => {
-      // STRICT EXCLUSION for bad service #12995
       if (s.service === '12995' || s.service.toString() === '12995') return false;
 
       const combined = (s.category + " " + s.name).toLowerCase();

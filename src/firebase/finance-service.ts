@@ -17,7 +17,6 @@ import {
   setDoc,
   query,
   where,
-  orderBy,
   limit,
   writeBatch
 } from "firebase/firestore";
@@ -34,7 +33,6 @@ async function getInternalExchangeRate() {
 
 /**
  * Places an order. 
- * Securely calls the SMM provider (Server Action) while updating Firestore from the client.
  */
 export async function placeOrder(uid: string, orderData: { 
   serviceId: string, 
@@ -48,7 +46,6 @@ export async function placeOrder(uid: string, orderData: {
   try {
     const userRef = doc(db, "users", uid);
     
-    // 1. Start Firestore Transaction (Atomicity)
     return await runTransaction(db, async (transaction) => {
       const userSnap = await transaction.get(userRef);
       if (!userSnap.exists()) throw new Error("المستخدم غير موجود");
@@ -58,7 +55,6 @@ export async function placeOrder(uid: string, orderData: {
         throw new Error("رصيدك غير كافٍ لإتمام هذا الطلب");
       }
 
-      // 2. Call SMM Provider (This is a Server Action, so API Key is hidden)
       const providerResponse = await smmOrder({
         service: orderData.apiId,
         link: orderData.link,
@@ -73,7 +69,6 @@ export async function placeOrder(uid: string, orderData: {
         throw new Error("فشل الحصول على رقم الطلب من المزود");
       }
 
-      // 3. Deduct balance and record order
       transaction.update(userRef, {
         balance: increment(-orderData.price)
       });
@@ -103,16 +98,18 @@ export async function placeOrder(uid: string, orderData: {
 
 /**
  * Syncs user's active orders with the provider.
- * Fetches statuses and updates Firestore.
+ * Improved to be more resilient with simple queries.
  */
 export async function syncUserOrdersStatus(uid: string) {
+  if (!uid) return;
+  
   try {
     const ordersRef = collection(db, "orders");
+    // Simple query without orderBy to avoid index requirements for status sync
     const q = query(
       ordersRef, 
-      where("userId", "==", uid), 
-      orderBy("createdAt", "desc"),
-      limit(50)
+      where("userId", "==", uid),
+      limit(100) 
     );
     
     const snapshot = await getDocs(q);
@@ -138,13 +135,18 @@ export async function syncUserOrdersStatus(uid: string) {
       
       if (apiData && apiData.status) {
         let newStatus = orderDoc.data().status;
-        const apiStatus = apiData.status.toLowerCase();
+        const apiStatus = apiData.status.toLowerCase().trim().replace(/_/g, ' ');
 
-        // Map provider status to app status
-        if (apiStatus === 'pending') newStatus = 'قيد المراجعة';
-        else if (apiStatus === 'processing' || apiStatus === 'in progress') newStatus = 'قيد التنفيذ';
-        else if (apiStatus === 'completed' || apiStatus === 'partial') newStatus = 'مكتمل';
-        else if (apiStatus === 'canceled' || apiStatus === 'refunded') newStatus = 'ملغي';
+        // Comprehensive Mapping for Arabic Statuses
+        if (apiStatus === 'pending' || apiStatus === 'waiting') {
+          newStatus = 'قيد المراجعة';
+        } else if (apiStatus === 'processing' || apiStatus === 'in progress' || apiStatus === 'inprogress') {
+          newStatus = 'قيد التنفيذ';
+        } else if (apiStatus === 'completed' || apiStatus === 'partial' || apiStatus === 'done') {
+          newStatus = 'مكتمل';
+        } else if (apiStatus === 'canceled' || apiStatus === 'cancelled' || apiStatus === 'refunded' || apiStatus === 'failed') {
+          newStatus = 'ملغي';
+        }
 
         if (newStatus !== orderDoc.data().status) {
           batch.update(orderDoc.ref, { status: newStatus });
@@ -163,7 +165,6 @@ export async function syncUserOrdersStatus(uid: string) {
 
 /**
  * Admin action to approve shipping and add balance.
- * Runs on client to satisfy Firestore Security Rules (isAdmin check).
  */
 export async function approveShippingRequest(shippingId: string, userId: string, amountMad: number) {
   if (!shippingId || !userId || !amountMad) throw new Error("بيانات غير مكتملة");
