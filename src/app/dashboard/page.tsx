@@ -1,7 +1,7 @@
 
 "use client";
 
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { 
@@ -16,7 +16,8 @@ import {
   TrendingDown,
   Loader2,
   TrendingUp,
-  Ghost
+  Ghost,
+  Globe
 } from 'lucide-react';
 import Link from 'next/link';
 import { cn } from '@/lib/utils';
@@ -51,30 +52,24 @@ const XIcon = ({ className }: { className?: string }) => (
 export default function DashboardOverview() {
   const { user, userData, loading: authLoading } = useAuth();
   
-  // Get data from multiple cache sources to ensure instant display
+  // Cache retrieval
   const cachedRecent = getPaginatedCache('homeRecentOrders') || [];
   const cachedAll = getPaginatedCache('homeAllOrders') || [];
   const mainOrdersCache = getPaginatedCache('userOrders')?.items || [];
-  
-  // Determine initial display data: prioritize homeAllOrders, then mainOrdersCache
   const initialData = cachedAll.length > 0 ? cachedAll : mainOrdersCache;
   const initialRecent = cachedRecent.length > 0 ? cachedRecent : initialData.slice(0, 3);
   
   const [recentOrders, setRecentOrders] = useState<any[]>(initialRecent);
-  // Only show loader if we literally have no cached data at all
   const [dataLoading, setDataLoading] = useState(initialRecent.length === 0);
 
   useEffect(() => {
     if (!user || authLoading) return;
 
     const unsubscribe = getUserOrdersStream(user.uid, (data) => {
-      const sortedData = [...data].sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+      // Data is already sorted by the query in getUserOrdersStream (createdAt desc)
+      updatePaginatedCache('homeAllOrders', data);
       
-      // Update all relevant caches to stay synced
-      updatePaginatedCache('homeAllOrders', sortedData);
-      updatePaginatedCache('userOrders', { items: sortedData, lastVisible: null, hasMore: false });
-      
-      const top3 = sortedData.slice(0, 3);
+      const top3 = data.slice(0, 3);
       setRecentOrders(top3);
       updatePaginatedCache('homeRecentOrders', top3);
       
@@ -230,7 +225,6 @@ export default function DashboardOverview() {
                 const platformInfo = getPlatformIcon(order.platform || order.title);
                 const Icon = platformInfo.icon;
                 
-                // Normalizing status for UI
                 let displayStatus = order.status;
                 if (displayStatus === 'قيد المراجعة' || displayStatus === 'Pending' || displayStatus === 'Processing') displayStatus = 'قيد المعالجة';
 
@@ -239,7 +233,7 @@ export default function DashboardOverview() {
                     <div className="flex items-center justify-between">
                       <div className="flex items-center gap-3">
                         <div className={cn("w-10 h-10 rounded-xl flex items-center justify-center shadow-sm", platformInfo.bg)}><Icon className={cn("h-5 w-5", platformInfo.color)} /></div>
-                        <div className="flex flex-col text-right"><span className="text-[12px] font-black text-gray-900 leading-none">ID: #{order.apiOrderId || '...'}</span><span className="text-[9px] font-bold text-gray-300 mt-1">{new Date(order.createdAt).toLocaleDateString('ar-MA')}</span></div>
+                        <div className="flex flex-col text-right"><span className="text-[12px] font-black text-gray-900 leading-none">ID: #{order.apiOrderId || '...'}</span><span className="text-[9px] font-bold text-gray-300 mt-1">{order.createdAt ? new Date(order.createdAt).toLocaleDateString('ar-MA') : '...'}</span></div>
                       </div>
                       <div className={cn(
                         "px-3 py-1.5 rounded-full text-[9px] font-black uppercase tracking-widest", 
@@ -256,9 +250,18 @@ export default function DashboardOverview() {
                     <div className="flex items-center justify-between pt-2 border-t border-gray-50">
                       <div className="flex flex-col">
                         <span className="text-[9px] font-bold text-gray-400 uppercase tracking-tight">المبلغ الإجمالي</span>
-                        <span className="text-lg font-black text-green-600">${Number(order.price).toFixed(2)}</span>
+                        <span className="text-lg font-black text-green-600">${Number(order.price || 0).toFixed(2)}</span>
                       </div>
-                      <a href={order.link.startsWith('http') ? order.link : `https://${order.link}`} target="_blank" rel="noopener noreferrer" className="flex items-center gap-1.5 text-orange-500 font-black text-[10px] px-3 py-2">انتقال للرابط <ArrowUpRight className="h-3 w-3" /></a>
+                      {order.link && (
+                        <a 
+                          href={order.link.startsWith('http') ? order.link : `https://${order.link}`} 
+                          target="_blank" 
+                          rel="noopener noreferrer" 
+                          className="flex items-center gap-1.5 text-orange-500 font-black text-[10px] px-3 py-2"
+                        >
+                          انتقال للرابط <ArrowUpRight className="h-3 w-3" />
+                        </a>
+                      )}
                     </div>
                   </div>
                 );
