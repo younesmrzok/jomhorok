@@ -37,7 +37,7 @@ const ThreadsIcon = ({ className }: { className?: string }) => (
 );
 
 export default function OrdersPage() {
-  const [activeTab, setActiveTab] = useState<'all' | 'pending_review' | 'processing' | 'completed' | 'canceled'>('all');
+  const [activeTab, setActiveTab] = useState<'all' | 'pending_processing' | 'processing' | 'completed' | 'canceled'>('all');
   
   const cachedOrders = getPaginatedCache('userOrders')?.items || [];
   const [orders, setOrders] = useState<any[]>(cachedOrders);
@@ -67,7 +67,7 @@ export default function OrdersPage() {
 
   const filteredOrders = orders.filter((order: any) => {
     if (activeTab === 'all') return true;
-    if (activeTab === 'pending_review') return order.status === 'قيد المراجعة';
+    if (activeTab === 'pending_processing') return order.status === 'قيد المعالجة';
     if (activeTab === 'processing') return order.status === 'قيد التنفيذ' || order.status === 'قيد الانتظار';
     if (activeTab === 'completed') return order.status === 'مكتمل';
     if (activeTab === 'canceled') return order.status === 'ملغي';
@@ -118,7 +118,7 @@ export default function OrdersPage() {
       <div className="w-full px-1">
         <div className="w-full overflow-x-auto scrollbar-hide flex items-center justify-start gap-2 py-2">
           <button onClick={() => setActiveTab('all')} className={getTabButtonStyle('all')}><ListFilter className="h-4 w-4" /> الكل</button>
-          <button onClick={() => setActiveTab('pending_review')} className={getTabButtonStyle('pending_review')}><AlertCircle className="h-4 w-4" /> قيد المراجعة</button>
+          <button onClick={() => setActiveTab('pending_processing')} className={getTabButtonStyle('pending_processing')}><AlertCircle className="h-4 w-4" /> قيد المعالجة</button>
           <button onClick={() => setActiveTab('processing')} className={getTabButtonStyle('processing')}><Clock className="h-4 w-4" /> قيد التنفيذ</button>
           <button onClick={() => setActiveTab('completed')} className={getTabButtonStyle('completed')}><CheckCircle2 className="h-4 w-4" /> المكتملة</button>
           <button onClick={() => setActiveTab('canceled')} className={getTabButtonStyle('canceled')}><XCircle className="h-4 w-4" /> ملغي</button>
@@ -143,7 +143,7 @@ export default function OrdersPage() {
                         "px-3 py-1.5 rounded-full text-[9px] font-black uppercase tracking-widest", 
                         order.status === 'مكتمل' ? "bg-green-50 text-green-600" : 
                         order.status === 'قيد التنفيذ' ? "bg-blue-50 text-blue-600" : 
-                        order.status === 'قيد المراجعة' ? "bg-slate-50 text-slate-600" :
+                        order.status === 'قيد المعالجة' ? "bg-slate-50 text-slate-600" :
                         order.status === 'ملغي' ? "bg-red-50 text-red-600" :
                         "bg-orange-50 text-orange-600"
                       )}>

@@ -84,7 +84,7 @@ export async function placeOrder(uid: string, orderData: {
         link: orderData.link,
         quantity: orderData.quantity,
         price: orderData.price,
-        status: 'قيد المراجعة',
+        status: 'قيد المعالجة',
         createdAt: new Date().toISOString()
       });
 
@@ -139,7 +139,7 @@ export async function syncUserOrdersStatus(uid: string) {
 
         // Comprehensive Mapping for Arabic Statuses
         if (apiStatus === 'pending' || apiStatus === 'waiting') {
-          newStatus = 'قيد المراجعة';
+          newStatus = 'قيد المعالجة';
         } else if (apiStatus === 'processing' || apiStatus === 'in progress' || apiStatus === 'inprogress') {
           newStatus = 'قيد التنفيذ';
         } else if (apiStatus === 'completed' || apiStatus === 'partial' || apiStatus === 'done') {
