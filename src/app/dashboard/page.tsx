@@ -51,11 +51,18 @@ const XIcon = ({ className }: { className?: string }) => (
 export default function DashboardOverview() {
   const { user, userData, loading: authLoading } = useAuth();
   
+  // Get data from multiple cache sources to ensure instant display
   const cachedRecent = getPaginatedCache('homeRecentOrders') || [];
   const cachedAll = getPaginatedCache('homeAllOrders') || [];
+  const mainOrdersCache = getPaginatedCache('userOrders')?.items || [];
   
-  const [recentOrders, setRecentOrders] = useState<any[]>(cachedRecent);
-  const [dataLoading, setDataLoading] = useState(cachedRecent.length === 0);
+  // Determine initial display data: prioritize homeAllOrders, then mainOrdersCache
+  const initialData = cachedAll.length > 0 ? cachedAll : mainOrdersCache;
+  const initialRecent = cachedRecent.length > 0 ? cachedRecent : initialData.slice(0, 3);
+  
+  const [recentOrders, setRecentOrders] = useState<any[]>(initialRecent);
+  // Only show loader if we literally have no cached data at all
+  const [dataLoading, setDataLoading] = useState(initialRecent.length === 0);
 
   useEffect(() => {
     if (!user || authLoading) return;
@@ -63,7 +70,9 @@ export default function DashboardOverview() {
     const unsubscribe = getUserOrdersStream(user.uid, (data) => {
       const sortedData = [...data].sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
       
+      // Update all relevant caches to stay synced
       updatePaginatedCache('homeAllOrders', sortedData);
+      updatePaginatedCache('userOrders', { items: sortedData, lastVisible: null, hasMore: false });
       
       const top3 = sortedData.slice(0, 3);
       setRecentOrders(top3);
@@ -83,16 +92,15 @@ export default function DashboardOverview() {
 
   const getPlatformIcon = (platform: string) => {
     const p = platform?.toLowerCase() || '';
-    if (p.includes('instagram') || p.includes('ig') || p.includes('insta') || p.includes('انستا')) return { icon: Instagram, color: 'text-pink-600', bg: 'bg-pink-50' };
-    if (p.includes('tiktok') || p.includes('تيك')) return { icon: TikTokIcon, color: 'text-black', bg: 'bg-gray-100' };
-    if (p.includes('facebook') || p.includes('فيسبوك')) return { icon: Facebook, color: 'text-blue-700', bg: 'bg-blue-50' };
-    if (p.includes('youtube') || p.includes('يوتيوب')) return { icon: Youtube, color: 'text-red-600', bg: 'bg-red-50' };
-    if (p.includes('twitter') || p.includes(' x ')) return { icon: XIcon, color: 'text-gray-900', bg: 'bg-gray-100' };
-    if (p.includes('telegram') || p.includes('تليجرام')) return { icon: Send, color: 'text-blue-500', bg: 'bg-blue-50' };
-    return { icon: Instagram, color: 'text-orange-500', bg: 'bg-orange-50' };
+    if (p.includes('instagram') || p.includes('ig') || p.includes('insta') || p.includes('انستا') || p.includes('انستقرام')) return { icon: Instagram, color: 'text-pink-600', bg: 'bg-pink-50' };
+    if (p.includes('tiktok') || p.includes('تيك') || p.includes('تيكتوك')) return { icon: TikTokIcon, color: 'text-black', bg: 'bg-gray-100' };
+    if (p.includes('facebook') || p.includes('فيسبوك') || p.includes('فيس')) return { icon: Facebook, color: 'text-blue-700', bg: 'bg-blue-50' };
+    if (p.includes('youtube') || p.includes('يوتيوب') || p.includes('يوتوب')) return { icon: Youtube, color: 'text-red-600', bg: 'bg-red-50' };
+    if (p.includes('twitter') || p.includes(' x ') || p.includes('تويتر')) return { icon: XIcon, color: 'text-gray-900', bg: 'bg-gray-100' };
+    if (p.includes('telegram') || p.includes('تليجرام') || p.includes('تلغرام')) return { icon: Send, color: 'text-blue-500', bg: 'bg-blue-50' };
+    return { icon: Globe, color: 'text-orange-500', bg: 'bg-orange-50' };
   };
 
-  // Now using dedicated database fields for instant display
   const balances = [
     { 
       label: 'أنفقت معنا', 
@@ -213,7 +221,7 @@ export default function DashboardOverview() {
           </Link>
         </div>
 
-        <div className="space-y-4 px-1">
+        <div className="space-y-4 px-1 min-h-[100px] flex flex-col justify-center">
           {dataLoading ? (
             <div className="py-10 flex justify-center"><Loader2 className="h-6 w-6 animate-spin text-orange-500" /></div>
           ) : (
@@ -223,10 +231,11 @@ export default function DashboardOverview() {
                 const Icon = platformInfo.icon;
                 
                 // Normalizing status for UI
-                const displayStatus = order.status === 'قيد المراجعة' ? 'قيد المعالجة' : order.status;
+                let displayStatus = order.status;
+                if (displayStatus === 'قيد المراجعة' || displayStatus === 'Pending' || displayStatus === 'Processing') displayStatus = 'قيد المعالجة';
 
                 return (
-                  <div key={idx} className="bg-white p-5 rounded-[2.5rem] border border-gray-50 shadow-sm flex flex-col gap-4 relative overflow-hidden animate-in fade-in duration-300">
+                  <div key={idx} className="bg-white p-5 rounded-[2.5rem] border border-gray-50 shadow-sm flex flex-col gap-4 relative overflow-hidden">
                     <div className="flex items-center justify-between">
                       <div className="flex items-center gap-3">
                         <div className={cn("w-10 h-10 rounded-xl flex items-center justify-center shadow-sm", platformInfo.bg)}><Icon className={cn("h-5 w-5", platformInfo.color)} /></div>
