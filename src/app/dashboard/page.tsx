@@ -51,26 +51,24 @@ const XIcon = ({ className }: { className?: string }) => (
 export default function DashboardOverview() {
   const { user, userData, loading: authLoading } = useAuth();
   
-  // Use cached data for immediate display
   const cachedRecent = getPaginatedCache('homeRecentOrders') || [];
   const cachedAll = getPaginatedCache('homeAllOrders') || [];
   
   const [recentOrders, setRecentOrders] = useState<any[]>(cachedRecent);
   const [allOrders, setAllOrders] = useState<any[]>(cachedAll);
-  
-  // Only show loading if we have NO cached data and we are still fetching
   const [dataLoading, setDataLoading] = useState(allOrders.length === 0);
 
   useEffect(() => {
     if (!user || authLoading) return;
 
-    // Real-time listener for ALL user orders to calculate 100% accurate stats
     const unsubscribe = getUserOrdersStream(user.uid, (data) => {
-      setAllOrders(data);
-      updatePaginatedCache('homeAllOrders', data);
+      // Ensure we sort by date descending
+      const sortedData = [...data].sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
       
-      // Update display list (last 3)
-      const top3 = data.slice(0, 3);
+      setAllOrders(sortedData);
+      updatePaginatedCache('homeAllOrders', sortedData);
+      
+      const top3 = sortedData.slice(0, 3);
       setRecentOrders(top3);
       updatePaginatedCache('homeRecentOrders', top3);
       
@@ -83,14 +81,21 @@ export default function DashboardOverview() {
   }, [user, authLoading]);
 
   const stats = useMemo(() => {
-    // 1. أنفقت معنا (يحتسب الطلبات المكتملة فقط كما طلب المستخدم)
+    // 1. أنفقت معنا: الطلبات المكتملة فقط
     const totalSpent = allOrders
-      .filter(o => o.status === 'مكتمل')
+      .filter(o => o.status === 'مكتمل' || o.status === 'Completed')
       .reduce((acc, order) => acc + (Number(order.price) || 0), 0);
     
-    // 2. جاري استخدامه (الطلبات التي لم تكتمل بعد: معالجة أو تنفيذ)
+    // 2. جاري استخدامه: يشمل المعالجة والتنفيذ والمراجعة (لحماية البيانات القديمة)
     const inProcessing = allOrders
-      .filter(o => o.status === 'قيد التنفيذ' || o.status === 'قيد المعالجة')
+      .filter(o => 
+        o.status === 'قيد التنفيذ' || 
+        o.status === 'قيد المعالجة' || 
+        o.status === 'قيد المراجعة' ||
+        o.status === 'In progress' ||
+        o.status === 'Pending' ||
+        o.status === 'Processing'
+      )
       .reduce((acc, order) => acc + (Number(order.price) || 0), 0);
     
     return {
@@ -244,6 +249,9 @@ export default function DashboardOverview() {
                 const platformInfo = getPlatformIcon(order.platform || order.title);
                 const Icon = platformInfo.icon;
                 
+                // Normalizing status for UI
+                const displayStatus = order.status === 'قيد المراجعة' ? 'قيد المعالجة' : order.status;
+
                 return (
                   <div key={idx} className="bg-white p-5 rounded-[2.5rem] border border-gray-50 shadow-sm flex flex-col gap-4 relative overflow-hidden animate-in fade-in duration-300">
                     <div className="flex items-center justify-between">
@@ -253,13 +261,13 @@ export default function DashboardOverview() {
                       </div>
                       <div className={cn(
                         "px-3 py-1.5 rounded-full text-[9px] font-black uppercase tracking-widest", 
-                        order.status === 'مكتمل' ? "bg-green-50 text-green-600" : 
-                        order.status === 'قيد التنفيذ' ? "bg-blue-50 text-blue-600" : 
-                        order.status === 'قيد المعالجة' ? "bg-slate-50 text-slate-600" :
-                        order.status === 'ملغي' ? "bg-red-50 text-red-600" :
+                        displayStatus === 'مكتمل' ? "bg-green-50 text-green-600" : 
+                        displayStatus === 'قيد التنفيذ' ? "bg-blue-50 text-blue-600" : 
+                        displayStatus === 'قيد المعالجة' ? "bg-slate-50 text-slate-600" :
+                        displayStatus === 'ملغي' ? "bg-red-50 text-red-600" :
                         "bg-orange-50 text-orange-600"
                       )}>
-                        {order.status}
+                        {displayStatus}
                       </div>
                     </div>
                     <h4 className="text-[12px] font-black text-gray-800 leading-tight pr-1 line-clamp-1">{order.title}</h4>

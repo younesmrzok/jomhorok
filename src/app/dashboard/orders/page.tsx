@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useState, useEffect } from 'react';
@@ -52,7 +53,7 @@ export default function OrdersPage() {
       return;
     }
 
-    // Attempt to sync status from provider API in background
+    // Sync status in background
     syncUserOrdersStatus(user.uid);
 
     const unsubscribe = getUserOrdersStream(user.uid, (data) => {
@@ -69,10 +70,20 @@ export default function OrdersPage() {
   const filteredOrders = orders.filter((order: any) => {
     const status = order.status;
     if (activeTab === 'all') return true;
-    if (activeTab === 'pending_processing') return status === 'قيد المعالجة' || status === 'قيد المراجعة';
-    if (activeTab === 'processing') return status === 'قيد التنفيذ';
-    if (activeTab === 'completed') return status === 'مكتمل';
-    if (activeTab === 'canceled') return status === 'ملغي';
+    
+    // Normalize logic for filtering to support legacy and new names
+    if (activeTab === 'pending_processing') {
+      return status === 'قيد المعالجة' || status === 'قيد المراجعة' || status === 'Pending' || status === 'Processing';
+    }
+    if (activeTab === 'processing') {
+      return status === 'قيد التنفيذ' || status === 'In progress' || status === 'In Progress';
+    }
+    if (activeTab === 'completed') {
+      return status === 'مكتمل' || status === 'Completed' || status === 'Partial';
+    }
+    if (activeTab === 'canceled') {
+      return status === 'ملغي' || status === 'Canceled' || status === 'Cancelled' || status === 'Refunded';
+    }
     return true;
   });
 
@@ -135,8 +146,12 @@ export default function OrdersPage() {
                 const platformInfo = getPlatformIcon(order.platform || order.title);
                 const Icon = platformInfo.icon;
                 
-                // Use the stored status directly for total accuracy with DB/Sync
-                const displayStatus = order.status === 'قيد المراجعة' ? 'قيد المعالجة' : order.status;
+                // Normalizing legacy names for UI
+                let displayStatus = order.status;
+                if (displayStatus === 'قيد المراجعة' || displayStatus === 'Pending' || displayStatus === 'Processing') displayStatus = 'قيد المعالجة';
+                if (displayStatus === 'In progress' || displayStatus === 'In Progress') displayStatus = 'قيد التنفيذ';
+                if (displayStatus === 'Completed' || displayStatus === 'Partial') displayStatus = 'مكتمل';
+                if (displayStatus === 'Canceled' || displayStatus === 'Cancelled' || displayStatus === 'Refunded') displayStatus = 'ملغي';
 
                 return (
                   <div key={order.id || idx} className="bg-white p-5 rounded-[2.5rem] border border-gray-50 shadow-sm flex flex-col gap-4 relative overflow-hidden animate-in fade-in slide-in-from-bottom-2 duration-300">
