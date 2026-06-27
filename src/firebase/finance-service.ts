@@ -8,13 +8,13 @@
 import { 
   doc, 
   getDoc, 
-  getDocs,
   collection, 
   runTransaction, 
   increment, 
   updateDoc, 
   deleteDoc,
   setDoc,
+  getDocs,
   query,
   where,
   limit,
@@ -22,14 +22,6 @@ import {
 } from "firebase/firestore";
 import { db } from "./config";
 import { smmOrder, smmOrdersStatus } from "@/lib/smm-provider";
-
-/**
- * Get current exchange rate from DB (Client Side)
- */
-async function getInternalExchangeRate() {
-  const rateDoc = await getDoc(doc(db, "settings", "exchangeRate"));
-  return rateDoc.exists() ? parseFloat(rateDoc.data().rate) || 10 : 10;
-}
 
 /**
  * Places an order. 
@@ -97,8 +89,7 @@ export async function placeOrder(uid: string, orderData: {
 }
 
 /**
- * Syncs user's active orders with the provider.
- * Improved to ensure statuses are mapped to 'قيد المعالجة' correctly.
+ * Syncs user's active orders with the provider using strict mapping.
  */
 export async function syncUserOrdersStatus(uid: string) {
   if (!uid) return;
@@ -128,37 +119,37 @@ export async function syncUserOrdersStatus(uid: string) {
     const batch = writeBatch(db);
     let hasChanges = false;
 
+    // Strict Mapping Table
+    const statusMap: Record<string, string> = {
+      'pending': 'قيد المعالجة',
+      'waiting': 'قيد المعالجة',
+      'processing': 'قيد التنفيذ',
+      'in progress': 'قيد التنفيذ',
+      'inprogress': 'قيد التنفيذ',
+      'completed': 'مكتمل',
+      'partial': 'مكتمل',
+      'done': 'مكتمل',
+      'canceled': 'ملغي',
+      'cancelled': 'ملغي',
+      'refunded': 'ملغي',
+      'failed': 'ملغي'
+    };
+
     activeOrders.forEach(orderDoc => {
       const apiId = orderDoc.data().apiOrderId;
       const currentLocalStatus = orderDoc.data().status;
       const apiData = statuses[apiId];
       
       if (apiData && apiData.status) {
-        let newStatus = currentLocalStatus;
-        const apiStatus = apiData.status.toLowerCase().trim().replace(/_/g, ' ');
+        const apiStatusKey = apiData.status.toLowerCase().trim().replace(/_/g, ' ');
+        const mappedStatus = statusMap[apiStatusKey];
 
-        // Comprehensive Mapping for Arabic Statuses
-        if (apiStatus === 'pending' || apiStatus === 'waiting') {
-          newStatus = 'قيد المعالجة';
-        } else if (apiStatus === 'processing' || apiStatus === 'in progress' || apiStatus === 'inprogress') {
-          newStatus = 'قيد التنفيذ';
-        } else if (apiStatus === 'completed' || apiStatus === 'partial' || apiStatus === 'done') {
-          newStatus = 'مكتمل';
-        } else if (apiStatus === 'canceled' || apiStatus === 'cancelled' || apiStatus === 'refunded' || apiStatus === 'failed') {
-          newStatus = 'ملغي';
-        }
-
-        // Forced correction for any legacy 'قيد المراجعة' status
-        if (currentLocalStatus === 'قيد المراجعة' && (apiStatus === 'pending' || apiStatus === 'waiting')) {
-          newStatus = 'قيد المعالجة';
-        }
-
-        if (newStatus !== currentLocalStatus) {
-          batch.update(orderDoc.ref, { status: newStatus });
+        if (mappedStatus && mappedStatus !== currentLocalStatus) {
+          batch.update(orderDoc.ref, { status: mappedStatus });
           hasChanges = true;
         }
       } else if (currentLocalStatus === 'قيد المراجعة') {
-        // Fallback: If no API data but status is legacy, update it
+        // Migration: If we find a legacy status that didn't match, move it to 'Under Processing'
         batch.update(orderDoc.ref, { status: 'قيد المعالجة' });
         hasChanges = true;
       }
@@ -178,7 +169,8 @@ export async function syncUserOrdersStatus(uid: string) {
 export async function approveShippingRequest(shippingId: string, userId: string, amountMad: number) {
   if (!shippingId || !userId || !amountMad) throw new Error("بيانات غير مكتملة");
   
-  const rate = await getInternalExchangeRate();
+  const rateDoc = await getDoc(doc(db, "settings", "exchangeRate"));
+  const rate = rateDoc.exists() ? parseFloat(rateDoc.data().rate) || 10 : 10;
   const amountUsd = parseFloat(amountMad.toString()) / rate;
   
   await updateDoc(doc(db, "shippings", shippingId), { status: 'completed' });

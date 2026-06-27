@@ -52,6 +52,7 @@ export default function OrdersPage() {
       return;
     }
 
+    // Attempt to sync status from provider API in background
     syncUserOrdersStatus(user.uid);
 
     const unsubscribe = getUserOrdersStream(user.uid, (data) => {
@@ -69,7 +70,7 @@ export default function OrdersPage() {
     const status = order.status;
     if (activeTab === 'all') return true;
     if (activeTab === 'pending_processing') return status === 'قيد المعالجة' || status === 'قيد المراجعة';
-    if (activeTab === 'processing') return status === 'قيد التنفيذ' || status === 'قيد الانتظار';
+    if (activeTab === 'processing') return status === 'قيد التنفيذ';
     if (activeTab === 'completed') return status === 'مكتمل';
     if (activeTab === 'canceled') return status === 'ملغي';
     return true;
@@ -134,7 +135,7 @@ export default function OrdersPage() {
                 const platformInfo = getPlatformIcon(order.platform || order.title);
                 const Icon = platformInfo.icon;
                 
-                // Normalizing status for display
+                // Use the stored status directly for total accuracy with DB/Sync
                 const displayStatus = order.status === 'قيد المراجعة' ? 'قيد المعالجة' : order.status;
 
                 return (
