@@ -31,7 +31,8 @@ import {
   AlertTriangle,
   X,
   ChevronDown,
-  Coins
+  Coins,
+  Clock
 } from 'lucide-react';
 import Link from 'next/link';
 import { cn } from '@/lib/utils';
@@ -148,20 +149,22 @@ export default function AdminDashboard() {
   };
 
   const handleUpdateExchangeRate = async () => {
-    setRateLoading(true);
-    try {
-      const rateNum = parseFloat(exchangeRate);
-      if (isNaN(rateNum) || rateNum <= 0) {
-        toast({ variant: "destructive", title: "سعر صرف غير صحيح" });
-        return;
+    openConfirm("تأكيد حفظ سعر الصرف", "هل أنت متأكد من تغيير سعر الصرف؟ سيؤثر هذا على كافة عمليات الشحن القادمة.", async () => {
+      setRateLoading(true);
+      try {
+        const rateNum = parseFloat(exchangeRate);
+        if (isNaN(rateNum) || rateNum <= 0) {
+          toast({ variant: "destructive", title: "سعر صرف غير صحيح" });
+          return;
+        }
+        await updateExchangeRate(rateNum); 
+        toast({ variant: "success", title: "تم تحديث سعر الصرف بنجاح" });
+      } catch (error) {
+        toast({ variant: "destructive", title: "خطأ في التحديث" });
+      } finally {
+        setRateLoading(false);
       }
-      await updateExchangeRate(rateNum); 
-      toast({ variant: "success", title: "تم تحديث سعر الصرف بنجاح" });
-    } catch (error) {
-      toast({ variant: "destructive", title: "خطأ في التحديث" });
-    } finally {
-      setRateLoading(false);
-    }
+    });
   };
 
   const handleDeleteUser = async (userId: string) => {
@@ -340,7 +343,7 @@ export default function AdminDashboard() {
                       </CardContent>
                     </Card>
                   ))}
-                  {usersState.hasMore && (
+                  {usersState.hasMore && usersState.items.length >= 10 && (
                     <button 
                       onClick={() => fetchData('adminUsers', 'users', usersState, setUsersState)} 
                       className="w-full py-5 bg-white rounded-[2rem] border border-orange-100 text-orange-500 font-black text-xs flex items-center justify-center gap-2 transition-all outline-none active:scale-[0.98]"
@@ -402,7 +405,7 @@ export default function AdminDashboard() {
                     </CardContent>
                   </Card>
                 ))}
-                {shippingsState.hasMore && (
+                {shippingsState.hasMore && shippingsState.items.length >= 10 && (
                   <button 
                     onClick={() => fetchData('adminShippings', 'shippings', shippingsState, setShippingsState)} 
                     className="w-full py-5 bg-white rounded-[2rem] border border-orange-100 text-orange-500 font-black text-xs flex items-center justify-center gap-2 transition-all outline-none active:scale-[0.98]"
@@ -456,7 +459,7 @@ export default function AdminDashboard() {
           <TabsContent value="support" className="space-y-6 mt-6 outline-none">
             {initialLoading && ticketsState.items.length === 0 ? (
               <div className="py-20 flex justify-center"><Loader2 className="h-10 w-10 animate-spin text-slate-900" /></div>
-            ) : (
+            ) : ticketsState.items.length > 0 ? (
               <div className="space-y-4">
                 {ticketsState.items.map((ticket: any) => (
                   <Card key={ticket.id} className="rounded-[2.2rem] border-none shadow-sm bg-white overflow-hidden">
@@ -482,7 +485,7 @@ export default function AdminDashboard() {
                     </CardContent>
                   </Card>
                 ))}
-                {ticketsState.hasMore && (
+                {ticketsState.hasMore && ticketsState.items.length >= 10 && (
                   <button 
                     onClick={() => fetchData('adminTickets', 'tickets', ticketsState, setTicketsState)} 
                     className="w-full py-5 bg-white rounded-[2rem] border border-orange-100 text-orange-500 font-black text-xs flex items-center justify-center gap-2 transition-all outline-none active:scale-[0.98]"
@@ -491,6 +494,13 @@ export default function AdminDashboard() {
                     <span>عرض المزيد</span>
                   </button>
                 )}
+              </div>
+            ) : (
+              <div className="py-20 text-center flex flex-col items-center gap-3">
+                <div className="w-16 h-16 rounded-[1.8rem] bg-gray-50 flex items-center justify-center border border-gray-100 mb-2">
+                  <Mail className="h-8 w-8 text-gray-200" />
+                </div>
+                <p className="text-xs font-black text-gray-300">لا توجد تذاكر دعم حالياً.</p>
               </div>
             )}
           </TabsContent>

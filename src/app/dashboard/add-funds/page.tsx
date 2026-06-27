@@ -241,7 +241,7 @@ export default function AddFundsPage() {
             </TabsList>
           </div>
 
-          <TabsContent value="bank" className="space-y-8 mt-6 outline-none">
+          <TabsContent value="bank" className="space-y-6 mt-6 outline-none">
             <div className="grid grid-cols-2 gap-4 w-full">
               {bankMethods.map((m) => (
                 <button 
@@ -362,7 +362,7 @@ export default function AddFundsPage() {
             )}
           </TabsContent>
 
-          <TabsContent value="voucher" className="space-y-8 mt-6 outline-none">
+          <TabsContent value="voucher" className="space-y-6 mt-6 outline-none">
             <div className="grid grid-cols-2 gap-4 w-full">
               {voucherMethods.map((v) => (
                 <button key={v.id} onClick={() => setMethod(v.id as any)} className={cn("flex flex-col items-center justify-center aspect-square rounded-[2.5rem] border transition-none gap-3 p-4 outline-none active:bg-orange-50", method === v.id ? "border-orange-500 bg-orange-50" : "bg-white border-gray-100")}>
@@ -464,7 +464,7 @@ export default function AddFundsPage() {
                       </div>
                     </div>
                   ))}
-                  {shippingsState.hasMore && (
+                  {shippingsState.hasMore && shippingsState.items.length >= 10 && (
                     <button 
                       onClick={() => loadHistory()} 
                       disabled={historyLoading} 
