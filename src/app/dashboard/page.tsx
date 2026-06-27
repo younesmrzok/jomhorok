@@ -83,10 +83,12 @@ export default function DashboardOverview() {
   }, [user, authLoading]);
 
   const stats = useMemo(() => {
-    // Exact calculation from the full array of orders
-    const totalSpent = allOrders.reduce((acc, order) => acc + (Number(order.price) || 0), 0);
+    // 1. أنفقت معنا (يحتسب الطلبات المكتملة فقط كما طلب المستخدم)
+    const totalSpent = allOrders
+      .filter(o => o.status === 'مكتمل')
+      .reduce((acc, order) => acc + (Number(order.price) || 0), 0);
     
-    // Exact calculation for orders currently being processed
+    // 2. جاري استخدامه (الطلبات التي لم تكتمل بعد: معالجة أو تنفيذ)
     const inProcessing = allOrders
       .filter(o => o.status === 'قيد التنفيذ' || o.status === 'قيد المعالجة')
       .reduce((acc, order) => acc + (Number(order.price) || 0), 0);
@@ -115,7 +117,7 @@ export default function DashboardOverview() {
 
   const balances = [
     { 
-      label: 'إجمالي الإنفاق', 
+      label: 'أنفقت معنا', 
       value: formatBalance(stats.totalSpent), 
       icon: TrendingDown, 
       textColor: 'text-orange-500', 
