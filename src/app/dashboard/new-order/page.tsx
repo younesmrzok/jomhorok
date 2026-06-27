@@ -294,24 +294,25 @@ function OrderInterface() {
             onChange={(e) => setLink(e.target.value)} 
             className="h-14 rounded-2xl bg-white border-gray-100 shadow-sm text-right pr-6 focus-visible:ring-orange-500 text-sm font-bold transition-all" 
           />
-          <div className="bg-orange-50/50 border border-orange-100 p-5 rounded-[2rem] space-y-3">
-            <div className="flex items-center gap-2 text-orange-600">
-              <Info className="h-4 w-4" />
-              <span className="text-xs font-black uppercase">تنويه مهم</span>
-            </div>
-            <ul className="space-y-2.5">
-              {[
-                "في خانة الرابط، أدخل رابط الحساب أو المنشور بشكل صحيح.",
-                "لا ترسل أكثر من طلب لنفس الرابط حتى يكتمل الطلب الأول، لتجنب تداخل الطلبات.",
-                "تجنب إرسال كميات صغيرة جداً، لأنها قد تؤدي إلى تأخر معالجة الطلب."
-              ].map((text, i) => (
-                <li key={i} className="flex items-start gap-2">
-                  <div className="w-1 h-1 rounded-full bg-orange-300 mt-1.5 shrink-0" />
-                  <p className="text-[11px] font-bold text-orange-800/80 leading-relaxed">{text}</p>
-                </li>
-              ))}
-            </ul>
+        </div>
+
+        <div className="bg-orange-50/50 border border-orange-100 p-5 rounded-[2rem] space-y-3">
+          <div className="flex items-center gap-2 text-orange-600">
+            <Info className="h-4 w-4" />
+            <span className="text-xs font-black uppercase">تنويه مهم</span>
           </div>
+          <ul className="space-y-2.5">
+            {[
+              "في خانة الرابط، أدخل رابط الحساب أو المنشور بشكل صحيح.",
+              "لا ترسل أكثر من طلب لنفس الرابط حتى يكتمل الطلب الأول، لتجنب تداخل الطلبات.",
+              "تجنب إرسال كميات صغيرة جداً، لأنها قد تؤدي إلى تأخر معالجة الطلب."
+            ].map((text, i) => (
+              <li key={i} className="flex items-start gap-2">
+                <div className="w-1 h-1 rounded-full bg-orange-300 mt-1.5 shrink-0" />
+                <p className="text-[11px] font-bold text-orange-800/80 leading-relaxed">{text}</p>
+              </li>
+            ))}
+          </ul>
         </div>
 
         <div className="space-y-3">
