@@ -98,14 +98,13 @@ export async function placeOrder(uid: string, orderData: {
 
 /**
  * Syncs user's active orders with the provider.
- * Improved to be more resilient with simple queries.
+ * Improved to ensure statuses are mapped to 'قيد المعالجة' correctly.
  */
 export async function syncUserOrdersStatus(uid: string) {
   if (!uid) return;
   
   try {
     const ordersRef = collection(db, "orders");
-    // Simple query without orderBy to avoid index requirements for status sync
     const q = query(
       ordersRef, 
       where("userId", "==", uid),
@@ -131,10 +130,11 @@ export async function syncUserOrdersStatus(uid: string) {
 
     activeOrders.forEach(orderDoc => {
       const apiId = orderDoc.data().apiOrderId;
+      const currentLocalStatus = orderDoc.data().status;
       const apiData = statuses[apiId];
       
       if (apiData && apiData.status) {
-        let newStatus = orderDoc.data().status;
+        let newStatus = currentLocalStatus;
         const apiStatus = apiData.status.toLowerCase().trim().replace(/_/g, ' ');
 
         // Comprehensive Mapping for Arabic Statuses
@@ -148,10 +148,19 @@ export async function syncUserOrdersStatus(uid: string) {
           newStatus = 'ملغي';
         }
 
-        if (newStatus !== orderDoc.data().status) {
+        // Forced correction for any legacy 'قيد المراجعة' status
+        if (currentLocalStatus === 'قيد المراجعة' && (apiStatus === 'pending' || apiStatus === 'waiting')) {
+          newStatus = 'قيد المعالجة';
+        }
+
+        if (newStatus !== currentLocalStatus) {
           batch.update(orderDoc.ref, { status: newStatus });
           hasChanges = true;
         }
+      } else if (currentLocalStatus === 'قيد المراجعة') {
+        // Fallback: If no API data but status is legacy, update it
+        batch.update(orderDoc.ref, { status: 'قيد المعالجة' });
+        hasChanges = true;
       }
     });
 

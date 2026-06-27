@@ -1,4 +1,3 @@
-
 "use client";
 
 import { useState, useEffect, useMemo } from 'react';
@@ -82,7 +81,7 @@ export default function DashboardOverview() {
   const stats = useMemo(() => {
     const totalSpent = orders.reduce((acc, order) => acc + (order.price || 0), 0);
     const inProcessing = orders
-      .filter(o => o.status === 'قيد التنفيذ' || o.status === 'قيد الانتظار')
+      .filter(o => o.status === 'قيد التنفيذ' || o.status === 'قيد الانتظار' || o.status === 'قيد المعالجة' || o.status === 'قيد المراجعة')
       .reduce((acc, order) => acc + (order.price || 0), 0);
     
     return {
@@ -99,12 +98,12 @@ export default function DashboardOverview() {
 
   const getPlatformIcon = (platform: string) => {
     const p = platform?.toLowerCase() || '';
-    if (p.includes('instagram')) return { icon: Instagram, color: 'text-pink-600', bg: 'bg-pink-50' };
-    if (p.includes('tiktok')) return { icon: TikTokIcon, color: 'text-gray-900', bg: 'bg-gray-100' };
-    if (p.includes('facebook')) return { icon: Facebook, color: 'text-blue-600', bg: 'bg-blue-50' };
-    if (p.includes('youtube')) return { icon: Youtube, color: 'text-red-600', bg: 'bg-red-50' };
+    if (p.includes('instagram') || p.includes('ig') || p.includes('insta') || p.includes('انستا')) return { icon: Instagram, color: 'text-pink-600', bg: 'bg-pink-50' };
+    if (p.includes('tiktok') || p.includes('تيك')) return { icon: TikTokIcon, color: 'text-black', bg: 'bg-gray-100' };
+    if (p.includes('facebook') || p.includes('فيسبوك')) return { icon: Facebook, color: 'text-blue-700', bg: 'bg-blue-50' };
+    if (p.includes('youtube') || p.includes('يوتيوب')) return { icon: Youtube, color: 'text-red-600', bg: 'bg-red-50' };
     if (p.includes('twitter') || p.includes(' x ')) return { icon: XIcon, color: 'text-gray-900', bg: 'bg-gray-100' };
-    if (p.includes('telegram')) return { icon: Send, color: 'text-blue-400', bg: 'bg-blue-50' };
+    if (p.includes('telegram') || p.includes('تليجرام')) return { icon: Send, color: 'text-blue-500', bg: 'bg-blue-50' };
     return { icon: Instagram, color: 'text-orange-500', bg: 'bg-orange-50' };
   };
 
@@ -153,7 +152,7 @@ export default function DashboardOverview() {
               return (
                 <div key={idx} className="space-y-3">
                   <div className={cn("w-10 h-10 rounded-2xl mx-auto flex items-center justify-center mb-1 shadow-sm", item.bg)}>
-                    <Icon className="h-5 w-5 text-gray-400" />
+                    <Icon className={cn("h-5 w-5", item.textColor === 'text-orange-500' ? "text-orange-400" : "text-gray-400")} />
                   </div>
                   <div className="space-y-1">
                     <p className="text-[9px] text-gray-400 font-black uppercase tracking-widest">{item.label}</p>
@@ -234,8 +233,12 @@ export default function DashboardOverview() {
           ) : (
             <>
               {orders.map((order, idx) => {
-                const platformInfo = getPlatformIcon(order.platform);
+                const platformInfo = getPlatformIcon(order.platform || order.title);
                 const Icon = platformInfo.icon;
+                
+                // Normalizing status for display
+                const displayStatus = order.status === 'قيد المراجعة' ? 'قيد المعالجة' : order.status;
+
                 return (
                   <div key={idx} className="bg-white p-5 rounded-[2.5rem] border border-gray-50 shadow-sm flex flex-col gap-4 relative overflow-hidden">
                     <div className="flex items-center justify-between">
@@ -245,12 +248,13 @@ export default function DashboardOverview() {
                       </div>
                       <div className={cn(
                         "px-3 py-1.5 rounded-full text-[9px] font-black uppercase tracking-widest", 
-                        order.status === 'مكتمل' ? "bg-green-50 text-green-600" : 
-                        order.status === 'قيد التنفيذ' ? "bg-blue-50 text-blue-600" : 
-                        order.status === 'قيد المراجعة' ? "bg-slate-50 text-slate-600" :
+                        displayStatus === 'مكتمل' ? "bg-green-50 text-green-600" : 
+                        displayStatus === 'قيد التنفيذ' ? "bg-blue-50 text-blue-600" : 
+                        displayStatus === 'قيد المعالجة' ? "bg-slate-50 text-slate-600" :
+                        displayStatus === 'ملغي' ? "bg-red-50 text-red-600" :
                         "bg-orange-50 text-orange-600"
                       )}>
-                        {order.status}
+                        {displayStatus}
                       </div>
                     </div>
                     <h4 className="text-[12px] font-black text-gray-800 leading-tight pr-1 line-clamp-1">{order.title}</h4>

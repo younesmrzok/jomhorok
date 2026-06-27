@@ -66,11 +66,12 @@ export default function OrdersPage() {
   }, [user, authLoading]);
 
   const filteredOrders = orders.filter((order: any) => {
+    const status = order.status;
     if (activeTab === 'all') return true;
-    if (activeTab === 'pending_processing') return order.status === 'قيد المعالجة';
-    if (activeTab === 'processing') return order.status === 'قيد التنفيذ' || order.status === 'قيد الانتظار';
-    if (activeTab === 'completed') return order.status === 'مكتمل';
-    if (activeTab === 'canceled') return order.status === 'ملغي';
+    if (activeTab === 'pending_processing') return status === 'قيد المعالجة' || status === 'قيد المراجعة';
+    if (activeTab === 'processing') return status === 'قيد التنفيذ' || status === 'قيد الانتظار';
+    if (activeTab === 'completed') return status === 'مكتمل';
+    if (activeTab === 'canceled') return status === 'ملغي';
     return true;
   });
 
@@ -132,6 +133,10 @@ export default function OrdersPage() {
               {filteredOrders.map((order, idx) => {
                 const platformInfo = getPlatformIcon(order.platform || order.title);
                 const Icon = platformInfo.icon;
+                
+                // Normalizing status for display
+                const displayStatus = order.status === 'قيد المراجعة' ? 'قيد المعالجة' : order.status;
+
                 return (
                   <div key={order.id || idx} className="bg-white p-5 rounded-[2.5rem] border border-gray-50 shadow-sm flex flex-col gap-4 relative overflow-hidden animate-in fade-in slide-in-from-bottom-2 duration-300">
                     <div className="flex items-center justify-between">
@@ -141,13 +146,13 @@ export default function OrdersPage() {
                       </div>
                       <div className={cn(
                         "px-3 py-1.5 rounded-full text-[9px] font-black uppercase tracking-widest", 
-                        order.status === 'مكتمل' ? "bg-green-50 text-green-600" : 
-                        order.status === 'قيد التنفيذ' ? "bg-blue-50 text-blue-600" : 
-                        order.status === 'قيد المعالجة' ? "bg-slate-50 text-slate-600" :
-                        order.status === 'ملغي' ? "bg-red-50 text-red-600" :
+                        displayStatus === 'مكتمل' ? "bg-green-50 text-green-600" : 
+                        displayStatus === 'قيد التنفيذ' ? "bg-blue-50 text-blue-600" : 
+                        displayStatus === 'قيد المعالجة' ? "bg-slate-50 text-slate-600" :
+                        displayStatus === 'ملغي' ? "bg-red-50 text-red-600" :
                         "bg-orange-50 text-orange-600"
                       )}>
-                        {order.status}
+                        {displayStatus}
                       </div>
                     </div>
                     <h4 className="text-[12px] font-black text-gray-800 leading-tight pr-1 line-clamp-1">{order.title}</h4>
