@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useState, useEffect, useMemo } from 'react';
@@ -15,14 +16,12 @@ import {
   TrendingDown,
   Loader2,
   TrendingUp,
-  CreditCard,
   Ghost
 } from 'lucide-react';
 import Link from 'next/link';
 import { cn } from '@/lib/utils';
 import { useAuth } from '@/firebase/hooks';
-import { getPaginatedDocs } from '@/firebase/db-service';
-import { where } from 'firebase/firestore';
+import { getUserOrdersStream } from '@/firebase/db-service';
 import { getPaginatedCache, updatePaginatedCache } from '@/lib/pagination-store';
 
 const TikTokIcon = ({ className }: { className?: string }) => (
@@ -51,56 +50,48 @@ const XIcon = ({ className }: { className?: string }) => (
 
 export default function DashboardOverview() {
   const { user, userData, loading: authLoading } = useAuth();
-  const [orders, setOrders] = useState<any[]>(getPaginatedCache('homeRecentOrders') || []);
-  const [dataLoading, setDataLoading] = useState(!getPaginatedCache('homeRecentOrders'));
+  const [recentOrders, setRecentOrders] = useState<any[]>(getPaginatedCache('homeRecentOrders') || []);
+  const [allOrders, setAllOrders] = useState<any[]>([]);
+  const [dataLoading, setDataLoading] = useState(true);
 
   useEffect(() => {
-    async function loadRecentOrders() {
-      if (!user) return;
-      if (getPaginatedCache('homeRecentOrders')) {
-        setDataLoading(false);
-        return;
-      }
-      
-      try {
-        // Fetch 3 recent orders
-        const result = await getPaginatedDocs('orders', 3, null, [where('userId', '==', user.uid)], "createdAt");
-        
-        // Extra explicit sort in frontend to guarantee newest first
-        const sortedDocs = [...result.docs].sort((a, b) => 
-          new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
-        );
+    if (!user || authLoading) return;
 
-        setOrders(sortedDocs);
-        updatePaginatedCache('homeRecentOrders', sortedDocs);
-      } catch (error) {
-        console.error("Error loading home orders:", error);
-      } finally {
-        setDataLoading(false);
-      }
-    }
-    
-    if (user && !authLoading) {
-      loadRecentOrders();
-    }
+    // Real-time listener for ALL user orders to calculate 100% accurate stats
+    const unsubscribe = getUserOrdersStream(user.uid, (data) => {
+      setAllOrders(data);
+      
+      // Update display list (last 3)
+      const top3 = data.slice(0, 3);
+      setRecentOrders(top3);
+      updatePaginatedCache('homeRecentOrders', top3);
+      
+      setDataLoading(false);
+    });
+
+    return () => {
+      if (unsubscribe) unsubscribe();
+    };
   }, [user, authLoading]);
 
   const stats = useMemo(() => {
-    const totalSpent = orders.reduce((acc, order) => acc + (order.price || 0), 0);
-    const inProcessing = orders
-      .filter(o => o.status === 'قيد التنفيذ' || o.status === 'قيد الانتظار' || o.status === 'قيد المعالجة' || o.status === 'قيد المراجعة')
-      .reduce((acc, order) => acc + (order.price || 0), 0);
+    // Exact calculation from the full array of orders
+    const totalSpent = allOrders.reduce((acc, order) => acc + (Number(order.price) || 0), 0);
+    
+    // Exact calculation for orders currently being processed (Active funds)
+    const inProcessing = allOrders
+      .filter(o => o.status === 'قيد التنفيذ' || o.status === 'قيد المعالجة' || o.status === 'قيد المراجعة' || o.status === 'قيد الانتظار')
+      .reduce((acc, order) => acc + (Number(order.price) || 0), 0);
     
     return {
       totalSpent,
       inProcessing,
       availableBalance: userData?.balance || 0
     };
-  }, [orders, userData]);
+  }, [allOrders, userData]);
 
   const formatBalance = (val: number) => {
-    if (val === undefined || val === null) return "0.00";
-    return Number(val).toFixed(2);
+    return Number(val || 0).toFixed(2);
   };
 
   const getPlatformIcon = (platform: string) => {
@@ -239,12 +230,11 @@ export default function DashboardOverview() {
             <div className="py-10 flex justify-center"><Loader2 className="h-6 w-6 animate-spin text-orange-500" /></div>
           ) : (
             <>
-              {orders.map((order, idx) => {
+              {recentOrders.map((order, idx) => {
                 const platformInfo = getPlatformIcon(order.platform || order.title);
                 const Icon = platformInfo.icon;
                 
-                // Normalizing status for display
-                const displayStatus = order.status === 'قيد المراجعة' ? 'قيد المعالجة' : order.status;
+                const displayStatus = order.status;
 
                 return (
                   <div key={idx} className="bg-white p-5 rounded-[2.5rem] border border-gray-50 shadow-sm flex flex-col gap-4 relative overflow-hidden">
@@ -268,14 +258,14 @@ export default function DashboardOverview() {
                     <div className="flex items-center justify-between pt-2 border-t border-gray-50">
                       <div className="flex flex-col">
                         <span className="text-[9px] font-bold text-gray-400 uppercase tracking-tight">المبلغ الإجمالي</span>
-                        <span className="text-lg font-black text-green-600">${order.price.toFixed(2)}</span>
+                        <span className="text-lg font-black text-green-600">${Number(order.price).toFixed(2)}</span>
                       </div>
                       <a href={order.link.startsWith('http') ? order.link : `https://${order.link}`} target="_blank" rel="noopener noreferrer" className="flex items-center gap-1.5 text-orange-500 font-black text-[10px] px-3 py-2">انتقال للرابط <ArrowUpRight className="h-3 w-3" /></a>
                     </div>
                   </div>
                 );
               })}
-              {orders.length === 0 && <div className="py-10 text-center text-gray-300 text-[10px] font-black uppercase tracking-widest">لا توجد طلبات سابقة لعرضها</div>}
+              {recentOrders.length === 0 && <div className="py-10 text-center text-gray-300 text-[10px] font-black uppercase tracking-widest">لا توجد طلبات سابقة لعرضها</div>}
             </>
           )}
         </div>
