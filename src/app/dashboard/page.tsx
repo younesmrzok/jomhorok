@@ -16,13 +16,13 @@ import {
   TrendingDown,
   Loader2,
   TrendingUp,
-  Ghost,
   Globe
 } from 'lucide-react';
 import Link from 'next/link';
 import { cn } from '@/lib/utils';
 import { useAuth } from '@/firebase/hooks';
 import { getUserOrdersStream } from '@/firebase/db-service';
+import { syncUserOrdersStatus } from '@/firebase/finance-service';
 import { getPaginatedCache, updatePaginatedCache } from '@/lib/pagination-store';
 
 const TikTokIcon = ({ className }: { className?: string }) => (
@@ -54,30 +54,35 @@ export default function DashboardOverview() {
   
   // Cache retrieval
   const cachedRecent = getPaginatedCache('homeRecentOrders') || [];
-  const cachedAll = getPaginatedCache('homeAllOrders') || [];
-  const mainOrdersCache = getPaginatedCache('userOrders')?.items || [];
-  const initialData = cachedAll.length > 0 ? cachedAll : mainOrdersCache;
-  const initialRecent = cachedRecent.length > 0 ? cachedRecent : initialData.slice(0, 3);
-  
-  const [recentOrders, setRecentOrders] = useState<any[]>(initialRecent);
-  const [dataLoading, setDataLoading] = useState(initialRecent.length === 0);
+  const [recentOrders, setRecentOrders] = useState<any[]>(cachedRecent);
+  const [dataLoading, setDataLoading] = useState(cachedRecent.length === 0);
 
   useEffect(() => {
-    if (!user || authLoading) return;
+    if (authLoading) return;
+    if (!user) {
+      setDataLoading(false);
+      return;
+    }
+
+    // Sync in background to ensure data is fresh
+    syncUserOrdersStatus(user.uid);
 
     const unsubscribe = getUserOrdersStream(user.uid, (data) => {
-      // Data is already sorted by the query in getUserOrdersStream (createdAt desc)
       updatePaginatedCache('homeAllOrders', data);
-      
       const top3 = data.slice(0, 3);
       setRecentOrders(top3);
       updatePaginatedCache('homeRecentOrders', top3);
-      
       setDataLoading(false);
     });
 
+    // Safety timeout to prevent infinite spinner if Firebase takes too long
+    const timeout = setTimeout(() => {
+      setDataLoading(false);
+    }, 4000);
+
     return () => {
       if (unsubscribe) unsubscribe();
+      clearTimeout(timeout);
     };
   }, [user, authLoading]);
 
@@ -229,7 +234,7 @@ export default function DashboardOverview() {
                 if (displayStatus === 'قيد المراجعة' || displayStatus === 'Pending' || displayStatus === 'Processing') displayStatus = 'قيد المعالجة';
 
                 return (
-                  <div key={idx} className="bg-white p-5 rounded-[2.5rem] border border-gray-50 shadow-sm flex flex-col gap-4 relative overflow-hidden">
+                  <div key={order.id || idx} className="bg-white p-5 rounded-[2.5rem] border border-gray-50 shadow-sm flex flex-col gap-4 relative overflow-hidden">
                     <div className="flex items-center justify-between">
                       <div className="flex items-center gap-3">
                         <div className={cn("w-10 h-10 rounded-xl flex items-center justify-center shadow-sm", platformInfo.bg)}><Icon className={cn("h-5 w-5", platformInfo.color)} /></div>

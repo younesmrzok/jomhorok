@@ -1,3 +1,4 @@
+
 import { 
   collection, 
   addDoc, 
@@ -131,5 +132,8 @@ export const getUserOrdersStream = (uid: string, callback: (data: any[]) => void
   const q = query(collection(db, "orders"), where("userId", "==", uid), orderBy("createdAt", "desc"));
   return onSnapshot(q, (snap) => {
     callback(snap.docs.map(doc => ({ id: doc.id, ...doc.data() })));
+  }, (error) => {
+    console.error("Orders Stream Error:", error);
+    callback([]); // Return empty array on error to unblock UI loaders
   });
 };
