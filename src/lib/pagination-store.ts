@@ -18,6 +18,7 @@ const cache: Record<string, any> = {
   userOrders: { items: [], lastVisible: null, hasMore: true },
   userShippings: { items: [], lastVisible: null, hasMore: true },
   homeRecentOrders: null, // Cache for the 3 recent orders on home
+  homeAllOrders: [], // Cache for all user orders to compute home stats instantly
 };
 
 export const getPaginatedCache = (key: string) => cache[key];
@@ -28,8 +29,8 @@ export const updatePaginatedCache = (key: string, newState: any) => {
 
 export const clearPaginatedCache = (key?: string) => {
   if (key) {
-    if (key === 'homeRecentOrders') {
-      cache[key] = null;
+    if (key === 'homeRecentOrders' || key === 'homeAllOrders') {
+      cache[key] = key === 'homeAllOrders' ? [] : null;
     } else {
       cache[key] = { items: [], lastVisible: null, hasMore: true };
     }
@@ -37,6 +38,8 @@ export const clearPaginatedCache = (key?: string) => {
     Object.keys(cache).forEach(k => {
       if (k === 'homeRecentOrders') {
         cache[k] = null;
+      } else if (k === 'homeAllOrders') {
+        cache[k] = [];
       } else {
         cache[k] = { items: [], lastVisible: null, hasMore: true };
       }

@@ -50,9 +50,16 @@ const XIcon = ({ className }: { className?: string }) => (
 
 export default function DashboardOverview() {
   const { user, userData, loading: authLoading } = useAuth();
-  const [recentOrders, setRecentOrders] = useState<any[]>(getPaginatedCache('homeRecentOrders') || []);
-  const [allOrders, setAllOrders] = useState<any[]>([]);
-  const [dataLoading, setDataLoading] = useState(true);
+  
+  // Use cached data for immediate display
+  const cachedRecent = getPaginatedCache('homeRecentOrders') || [];
+  const cachedAll = getPaginatedCache('homeAllOrders') || [];
+  
+  const [recentOrders, setRecentOrders] = useState<any[]>(cachedRecent);
+  const [allOrders, setAllOrders] = useState<any[]>(cachedAll);
+  
+  // Only show loading if we have NO cached data and we are still fetching
+  const [dataLoading, setDataLoading] = useState(allOrders.length === 0);
 
   useEffect(() => {
     if (!user || authLoading) return;
@@ -60,6 +67,7 @@ export default function DashboardOverview() {
     // Real-time listener for ALL user orders to calculate 100% accurate stats
     const unsubscribe = getUserOrdersStream(user.uid, (data) => {
       setAllOrders(data);
+      updatePaginatedCache('homeAllOrders', data);
       
       // Update display list (last 3)
       const top3 = data.slice(0, 3);
@@ -78,9 +86,9 @@ export default function DashboardOverview() {
     // Exact calculation from the full array of orders
     const totalSpent = allOrders.reduce((acc, order) => acc + (Number(order.price) || 0), 0);
     
-    // Exact calculation for orders currently being processed (Active funds)
+    // Exact calculation for orders currently being processed
     const inProcessing = allOrders
-      .filter(o => o.status === 'قيد التنفيذ' || o.status === 'قيد المعالجة' || o.status === 'قيد المراجعة' || o.status === 'قيد الانتظار')
+      .filter(o => o.status === 'قيد التنفيذ' || o.status === 'قيد المعالجة')
       .reduce((acc, order) => acc + (Number(order.price) || 0), 0);
     
     return {
@@ -234,10 +242,8 @@ export default function DashboardOverview() {
                 const platformInfo = getPlatformIcon(order.platform || order.title);
                 const Icon = platformInfo.icon;
                 
-                const displayStatus = order.status;
-
                 return (
-                  <div key={idx} className="bg-white p-5 rounded-[2.5rem] border border-gray-50 shadow-sm flex flex-col gap-4 relative overflow-hidden">
+                  <div key={idx} className="bg-white p-5 rounded-[2.5rem] border border-gray-50 shadow-sm flex flex-col gap-4 relative overflow-hidden animate-in fade-in duration-300">
                     <div className="flex items-center justify-between">
                       <div className="flex items-center gap-3">
                         <div className={cn("w-10 h-10 rounded-xl flex items-center justify-center shadow-sm", platformInfo.bg)}><Icon className={cn("h-5 w-5", platformInfo.color)} /></div>
@@ -245,13 +251,13 @@ export default function DashboardOverview() {
                       </div>
                       <div className={cn(
                         "px-3 py-1.5 rounded-full text-[9px] font-black uppercase tracking-widest", 
-                        displayStatus === 'مكتمل' ? "bg-green-50 text-green-600" : 
-                        displayStatus === 'قيد التنفيذ' ? "bg-blue-50 text-blue-600" : 
-                        displayStatus === 'قيد المعالجة' ? "bg-slate-50 text-slate-600" :
-                        displayStatus === 'ملغي' ? "bg-red-50 text-red-600" :
+                        order.status === 'مكتمل' ? "bg-green-50 text-green-600" : 
+                        order.status === 'قيد التنفيذ' ? "bg-blue-50 text-blue-600" : 
+                        order.status === 'قيد المعالجة' ? "bg-slate-50 text-slate-600" :
+                        order.status === 'ملغي' ? "bg-red-50 text-red-600" :
                         "bg-orange-50 text-orange-600"
                       )}>
-                        {displayStatus}
+                        {order.status}
                       </div>
                     </div>
                     <h4 className="text-[12px] font-black text-gray-800 leading-tight pr-1 line-clamp-1">{order.title}</h4>

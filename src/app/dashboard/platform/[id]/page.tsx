@@ -131,8 +131,9 @@ export default function PlatformPage({ params }: { params: Promise<{ id: string 
   const platformId = resolvedParams.id;
   const { toast } = useToast();
   
-  const [platformServices, setPlatformServices] = useState<SmmService[]>([]);
-  const [loading, setLoading] = useState(true);
+  const cached = getCachedServices(platformId);
+  const [platformServices, setPlatformServices] = useState<SmmService[]>(cached || []);
+  const [loading, setLoading] = useState(platformServices.length === 0);
   const [activeTab, setActiveTab] = useState('followers');
   const [visibleCounts, setVisibleCounts] = useState<Record<string, number>>({
     followers: 10,
@@ -162,7 +163,9 @@ export default function PlatformPage({ params }: { params: Promise<{ id: string 
 
   useEffect(() => {
     async function fetchServices() {
-      setLoading(true);
+      // Don't show full loading if we have cached data
+      if (platformServices.length === 0) setLoading(true);
+      
       try {
         const data = await smmServicesByPlatform(platformId);
         if (data && 'error' in data) {
