@@ -52,39 +52,37 @@ const XIcon = ({ className }: { className?: string }) => (
 export default function DashboardOverview() {
   const { user, userData, loading: authLoading } = useAuth();
   
-  // Cache retrieval
   const cachedRecent = getPaginatedCache('homeRecentOrders') || [];
   const [recentOrders, setRecentOrders] = useState<any[]>(cachedRecent);
   const [dataLoading, setDataLoading] = useState(cachedRecent.length === 0);
 
   useEffect(() => {
-    if (authLoading) return;
-    if (!user) {
-      setDataLoading(false);
+    if (authLoading || !user) {
+      if (!authLoading && !user) setDataLoading(false);
       return;
     }
 
-    // Sync in background to ensure data is fresh
     syncUserOrdersStatus(user.uid);
 
     const unsubscribe = getUserOrdersStream(user.uid, (data) => {
-      updatePaginatedCache('homeAllOrders', data);
-      const top3 = data.slice(0, 3);
-      setRecentOrders(top3);
-      updatePaginatedCache('homeRecentOrders', top3);
+      if (data && Array.isArray(data)) {
+        updatePaginatedCache('homeAllOrders', data);
+        const top3 = data.slice(0, 3);
+        setRecentOrders(top3);
+        updatePaginatedCache('homeRecentOrders', top3);
+      }
       setDataLoading(false);
     });
 
-    // Safety timeout to prevent infinite spinner if Firebase takes too long
-    const timeout = setTimeout(() => {
+    const safetyTimeout = setTimeout(() => {
       setDataLoading(false);
     }, 4000);
 
     return () => {
       if (unsubscribe) unsubscribe();
-      clearTimeout(timeout);
+      clearTimeout(safetyTimeout);
     };
-  }, [user, authLoading]);
+  }, [user?.uid, authLoading]);
 
   const formatBalance = (val: number) => {
     return Number(val || 0).toFixed(2);
@@ -102,27 +100,9 @@ export default function DashboardOverview() {
   };
 
   const balances = [
-    { 
-      label: 'أنفقت معنا', 
-      value: formatBalance(userData?.totalSpent || 0), 
-      icon: TrendingDown, 
-      textColor: 'text-orange-500', 
-      bg: 'bg-gray-50/80' 
-    },
-    { 
-      label: 'جاري استخدامه', 
-      value: formatBalance(userData?.inProcessing || 0), 
-      icon: Clock, 
-      textColor: 'text-orange-500', 
-      bg: 'bg-gray-50/80' 
-    },
-    { 
-      label: 'رصيدك الآن', 
-      value: formatBalance(userData?.balance || 0), 
-      icon: Wallet, 
-      textColor: 'text-orange-500', 
-      bg: 'bg-gray-50/80' 
-    },
+    { label: 'أنفقت معنا', value: formatBalance(userData?.totalSpent || 0), icon: TrendingDown, textColor: 'text-orange-500', bg: 'bg-gray-50/80' },
+    { label: 'جاري استخدامه', value: formatBalance(userData?.inProcessing || 0), icon: Clock, textColor: 'text-orange-500', bg: 'bg-gray-50/80' },
+    { label: 'رصيدك الآن', value: formatBalance(userData?.balance || 0), icon: Wallet, textColor: 'text-orange-500', bg: 'bg-gray-50/80' },
   ];
 
   const platforms = [
@@ -146,7 +126,7 @@ export default function DashboardOverview() {
               return (
                 <div key={idx} className="space-y-3">
                   <div className={cn("w-10 h-10 rounded-2xl mx-auto flex items-center justify-center mb-1 shadow-sm", item.bg)}>
-                    <Icon className={cn("h-5 w-5", item.textColor === 'text-orange-500' ? "text-orange-400" : "text-gray-400")} />
+                    <Icon className="h-5 w-5 text-orange-400" />
                   </div>
                   <div className="space-y-1">
                     <p className="text-[9px] text-gray-400 font-black uppercase tracking-widest">{item.label}</p>
@@ -222,7 +202,7 @@ export default function DashboardOverview() {
         </div>
 
         <div className="space-y-4 px-1 min-h-[100px] flex flex-col justify-center">
-          {dataLoading ? (
+          {dataLoading && recentOrders.length === 0 ? (
             <div className="py-10 flex justify-center"><Loader2 className="h-6 w-6 animate-spin text-orange-500" /></div>
           ) : (
             <>
@@ -271,7 +251,7 @@ export default function DashboardOverview() {
                   </div>
                 );
               })}
-              {recentOrders.length === 0 && <div className="py-10 text-center text-gray-300 text-[10px] font-black uppercase tracking-widest">لا توجد طلبات سابقة لعرضها</div>}
+              {recentOrders.length === 0 && !dataLoading && <div className="py-10 text-center text-gray-300 text-[10px] font-black uppercase tracking-widest">لا توجد طلبات سابقة لعرضها</div>}
             </>
           )}
         </div>

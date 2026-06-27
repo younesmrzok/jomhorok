@@ -40,38 +40,38 @@ const ThreadsIcon = ({ className }: { className?: string }) => (
 export default function OrdersPage() {
   const [activeTab, setActiveTab] = useState<'all' | 'pending_processing' | 'processing' | 'completed' | 'canceled'>('all');
   
-  const cachedOrders = getPaginatedCache('userOrders')?.items || [];
-  const [orders, setOrders] = useState<any[]>(cachedOrders);
+  const cachedData = getPaginatedCache('userOrders');
+  const initialOrders = cachedData?.items || [];
+  const [orders, setOrders] = useState<any[]>(initialOrders);
   
-  const [loading, setLoading] = useState(cachedOrders.length === 0);
+  const [loading, setLoading] = useState(initialOrders.length === 0);
   const { user, loading: authLoading } = useAuth();
 
   useEffect(() => {
-    if (authLoading) return;
-    if (!user) {
-      setLoading(false);
+    if (authLoading || !user) {
+      if (!authLoading && !user) setLoading(false);
       return;
     }
 
-    // Sync status in background
     syncUserOrdersStatus(user.uid);
 
     const unsubscribe = getUserOrdersStream(user.uid, (data) => {
-      setOrders(data);
-      updatePaginatedCache('userOrders', { items: data, lastVisible: null, hasMore: false });
+      if (data && Array.isArray(data)) {
+        setOrders(data);
+        updatePaginatedCache('userOrders', { items: data, lastVisible: null, hasMore: false });
+      }
       setLoading(false);
     });
 
     return () => {
       if (unsubscribe) unsubscribe();
     };
-  }, [user, authLoading]);
+  }, [user?.uid, authLoading]);
 
   const filteredOrders = orders.filter((order: any) => {
     const status = order.status;
     if (activeTab === 'all') return true;
     
-    // Normalize logic for filtering to support legacy and new names
     if (activeTab === 'pending_processing') {
       return status === 'قيد المعالجة' || status === 'قيد المراجعة' || status === 'Pending' || status === 'Processing';
     }
@@ -138,7 +138,7 @@ export default function OrdersPage() {
         </div>
 
         <div className="space-y-4 pt-4">
-          {loading ? (
+          {loading && orders.length === 0 ? (
             <div className="py-20 flex justify-center"><Loader2 className="h-10 w-10 animate-spin text-orange-500" /></div>
           ) : filteredOrders.length > 0 ? (
             <>
@@ -146,7 +146,6 @@ export default function OrdersPage() {
                 const platformInfo = getPlatformIcon(order.platform || order.title);
                 const Icon = platformInfo.icon;
                 
-                // Normalizing legacy names for UI
                 let displayStatus = order.status;
                 if (displayStatus === 'قيد المراجعة' || displayStatus === 'Pending' || displayStatus === 'Processing') displayStatus = 'قيد المعالجة';
                 if (displayStatus === 'In progress' || displayStatus === 'In Progress') displayStatus = 'قيد التنفيذ';
