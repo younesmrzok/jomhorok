@@ -1,4 +1,3 @@
-
 "use client";
 
 import { useState, useEffect } from 'react';
@@ -21,6 +20,7 @@ import Link from 'next/link';
 import { cn } from '@/lib/utils';
 import { useAuth } from '@/firebase/hooks';
 import { getUserOrdersStream } from '@/firebase/db-service';
+import { syncUserOrdersStatus } from '@/firebase/finance-service';
 import { getPaginatedCache, updatePaginatedCache } from '@/lib/pagination-store';
 
 const TikTokIcon = ({ className }: { className?: string }) => (
@@ -39,7 +39,6 @@ export default function OrdersPage() {
   const { user, loading: authLoading } = useAuth();
 
   useEffect(() => {
-    // If auth check is done and no user exists, stop loading
     if (!authLoading && !user) {
       setLoading(false);
       return;
@@ -47,14 +46,16 @@ export default function OrdersPage() {
 
     if (!user) return;
 
-    // Start order listener
+    // Start background sync with provider
+    syncUserOrdersStatus(user.uid);
+
+    // Start real-time order listener
     const unsubscribe = getUserOrdersStream(user.uid, (data) => {
       setOrders(data);
       updatePaginatedCache('userOrders', { items: data, lastVisible: null, hasMore: false });
       setLoading(false);
     });
 
-    // Safety timeout: ensure loading stops after 4 seconds even if firestore is slow
     const timer = setTimeout(() => {
       setLoading(false);
     }, 4000);

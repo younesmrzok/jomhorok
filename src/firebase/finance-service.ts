@@ -8,15 +8,21 @@
 import { 
   doc, 
   getDoc, 
+  getDocs,
   collection, 
   runTransaction, 
   increment, 
   updateDoc, 
   deleteDoc,
-  setDoc
+  setDoc,
+  query,
+  where,
+  orderBy,
+  limit,
+  writeBatch
 } from "firebase/firestore";
 import { db } from "./config";
-import { smmOrder } from "@/lib/smm-provider";
+import { smmOrder, smmOrdersStatus } from "@/lib/smm-provider";
 
 /**
  * Get current exchange rate from DB (Client Side)
@@ -77,7 +83,7 @@ export async function placeOrder(uid: string, orderData: {
         userId: uid,
         userName: userData.name || userData.email,
         serviceId: orderData.serviceId,
-        apiOrderId: providerResponse.order,
+        apiOrderId: providerResponse.order.toString(),
         title: orderData.title,
         platform: orderData.platform,
         link: orderData.link,
@@ -92,6 +98,66 @@ export async function placeOrder(uid: string, orderData: {
   } catch (error: any) {
     console.error("Order Placement Error:", error);
     throw new Error(error.message || "حدث خطأ غير متوقع");
+  }
+}
+
+/**
+ * Syncs user's active orders with the provider.
+ * Fetches statuses and updates Firestore.
+ */
+export async function syncUserOrdersStatus(uid: string) {
+  try {
+    const ordersRef = collection(db, "orders");
+    const q = query(
+      ordersRef, 
+      where("userId", "==", uid), 
+      orderBy("createdAt", "desc"),
+      limit(50)
+    );
+    
+    const snapshot = await getDocs(q);
+    const activeOrders = snapshot.docs.filter(doc => {
+      const s = doc.data().status;
+      return s !== 'مكتمل' && s !== 'ملغي';
+    });
+
+    if (activeOrders.length === 0) return;
+
+    const apiOrderIds = activeOrders.map(d => d.data().apiOrderId).filter(id => !!id).join(',');
+    if (!apiOrderIds) return;
+
+    const statuses = await smmOrdersStatus(apiOrderIds);
+    if (!statuses || statuses.error) return;
+
+    const batch = writeBatch(db);
+    let hasChanges = false;
+
+    activeOrders.forEach(orderDoc => {
+      const apiId = orderDoc.data().apiOrderId;
+      const apiData = statuses[apiId];
+      
+      if (apiData && apiData.status) {
+        let newStatus = orderDoc.data().status;
+        const apiStatus = apiData.status.toLowerCase();
+
+        // Map provider status to app status
+        if (apiStatus === 'pending') newStatus = 'قيد المراجعة';
+        else if (apiStatus === 'processing' || apiStatus === 'in progress') newStatus = 'قيد التنفيذ';
+        else if (apiStatus === 'completed' || apiStatus === 'partial') newStatus = 'مكتمل';
+        else if (apiStatus === 'canceled' || apiStatus === 'refunded') newStatus = 'ملغي';
+
+        if (newStatus !== orderDoc.data().status) {
+          batch.update(orderDoc.ref, { status: newStatus });
+          hasChanges = true;
+        }
+      }
+    });
+
+    if (hasChanges) {
+      await batch.commit();
+    }
+  } catch (error) {
+    console.error("Sync Orders Error:", error);
   }
 }
 

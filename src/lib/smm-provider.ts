@@ -1,4 +1,3 @@
-
 'use server';
 /**
  * @fileOverview SMM Provider API Service for Jomhorak.com
@@ -63,6 +62,37 @@ export async function smmOrder(data: { service: number, link: string, quantity: 
     return jsonResult;
   } catch (error) {
     return { error: "حدث خطأ أثناء الاتصال بالمزود" };
+  }
+}
+
+/**
+ * Fetches statuses for multiple orders from the provider.
+ */
+export async function smmOrdersStatus(orderIds: string): Promise<any> {
+  if (!API_KEY) {
+    return { error: "إعدادات المزود غير مكتملة (API Key مفقود)" };
+  }
+
+  try {
+    const params = new URLSearchParams();
+    params.append('key', API_KEY);
+    params.append('action', 'status');
+    params.append('orders', orderIds);
+
+    const response = await fetch(API_URL, {
+      method: 'POST',
+      body: params,
+      headers: {
+        'Content-Type': 'application/x-www-form-urlencoded',
+      },
+      cache: 'no-store',
+    });
+
+    const result = await response.json();
+    return result;
+  } catch (error) {
+    console.error("SMM Status Fetch Error:", error);
+    return { error: "فشل تحديث حالة الطلبات" };
   }
 }
 
