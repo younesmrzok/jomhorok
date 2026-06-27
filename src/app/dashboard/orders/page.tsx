@@ -53,7 +53,8 @@ export default function OrdersPage() {
       return;
     }
 
-    syncUserOrdersStatus(user.uid);
+    // Attempt to sync but don't block display
+    syncUserOrdersStatus(user.uid).catch(console.error);
 
     const unsubscribe = getUserOrdersStream(user.uid, (data) => {
       if (data && Array.isArray(data)) {
@@ -172,7 +173,16 @@ export default function OrdersPage() {
                     </div>
                     <h4 className="text-[12px] font-black text-gray-800 leading-tight pr-1 line-clamp-1">{order.title}</h4>
                     <div className="flex items-center justify-between pt-2 border-t border-gray-50">
-                      <div className="flex flex-col"><span className="text-[9px] font-bold text-gray-400 uppercase tracking-tight">المبلغ الإجمالي</span><span className="text-lg font-black text-green-600">${order.price?.toFixed(2) || '0.00'}</span></div>
+                      <div className="flex gap-6">
+                        <div className="flex flex-col">
+                          <span className="text-[9px] font-bold text-gray-400 uppercase tracking-tight">الكمية</span>
+                          <span className="text-sm font-black text-gray-700">{order.quantity?.toLocaleString() || '...'}</span>
+                        </div>
+                        <div className="flex flex-col">
+                          <span className="text-[9px] font-bold text-gray-400 uppercase tracking-tight">المبلغ</span>
+                          <span className="text-lg font-black text-green-600">${order.price?.toFixed(2) || '0.00'}</span>
+                        </div>
+                      </div>
                       <a href={order.link?.startsWith('http') ? order.link : `https://${order.link}`} target="_blank" rel="noopener noreferrer" className="flex items-center gap-1.5 text-orange-500 font-black text-[10px] px-3 py-2">انتقال للرابط <ArrowUpRight className="h-3 w-3" /></a>
                     </div>
                   </div>

@@ -62,11 +62,12 @@ export default function DashboardOverview() {
       return;
     }
 
-    syncUserOrdersStatus(user.uid);
+    // Sync status and orders
+    syncUserOrdersStatus(user.uid).catch(console.error);
 
     const unsubscribe = getUserOrdersStream(user.uid, (data) => {
       if (data && Array.isArray(data)) {
-        updatePaginatedCache('homeAllOrders', data);
+        updatePaginatedCache('userOrders', { items: data, lastVisible: null, hasMore: false });
         const top3 = data.slice(0, 3);
         setRecentOrders(top3);
         updatePaginatedCache('homeRecentOrders', top3);
@@ -74,9 +75,10 @@ export default function DashboardOverview() {
       setDataLoading(false);
     });
 
+    // Safety timeout
     const safetyTimeout = setTimeout(() => {
       setDataLoading(false);
-    }, 4000);
+    }, 5000);
 
     return () => {
       if (unsubscribe) unsubscribe();
@@ -233,9 +235,15 @@ export default function DashboardOverview() {
                     </div>
                     <h4 className="text-[12px] font-black text-gray-800 leading-tight pr-1 line-clamp-1">{order.title}</h4>
                     <div className="flex items-center justify-between pt-2 border-t border-gray-50">
-                      <div className="flex flex-col">
-                        <span className="text-[9px] font-bold text-gray-400 uppercase tracking-tight">المبلغ الإجمالي</span>
-                        <span className="text-lg font-black text-green-600">${Number(order.price || 0).toFixed(2)}</span>
+                      <div className="flex gap-6">
+                        <div className="flex flex-col">
+                          <span className="text-[9px] font-bold text-gray-400 uppercase tracking-tight">الكمية</span>
+                          <span className="text-sm font-black text-gray-700">{order.quantity?.toLocaleString() || '...'}</span>
+                        </div>
+                        <div className="flex flex-col">
+                          <span className="text-[9px] font-bold text-gray-400 uppercase tracking-tight">المبلغ</span>
+                          <span className="text-lg font-black text-green-600">${Number(order.price || 0).toFixed(2)}</span>
+                        </div>
                       </div>
                       {order.link && (
                         <a 
