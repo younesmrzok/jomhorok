@@ -242,7 +242,7 @@ export default function DashboardOverview() {
                         </div>
                         <div className="flex flex-col">
                           <span className="text-[9px] font-bold text-gray-400 uppercase tracking-tight">المبلغ</span>
-                          <span className="text-lg font-black text-green-600">${Number(order.price || 0).toFixed(2)}</span>
+                          <span className="text-sm font-black text-green-600">${Number(order.price || 0).toFixed(2)}</span>
                         </div>
                       </div>
                       {order.link && (
