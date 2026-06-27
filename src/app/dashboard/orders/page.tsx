@@ -154,7 +154,7 @@ export default function OrdersPage() {
                 if (displayStatus === 'Canceled' || displayStatus === 'Cancelled' || displayStatus === 'Refunded') displayStatus = 'ملغي';
 
                 return (
-                  <div key={order.id || idx} className="bg-white p-5 rounded-[2.5rem] border border-gray-50 shadow-sm flex flex-col gap-4 relative overflow-hidden animate-in fade-in slide-in-from-bottom-2 duration-300">
+                  <div key={order.id || idx} className="bg-white p-5 rounded-[2.5rem] border border-gray-50 shadow-sm flex flex-col gap-4 relative overflow-hidden">
                     <div className="flex items-center justify-between">
                       <div className="flex items-center gap-3">
                         <div className={cn("w-10 h-10 rounded-xl flex items-center justify-center shadow-sm", platformInfo.bg)}><Icon className={cn("h-5 w-5", platformInfo.color)} /></div>
