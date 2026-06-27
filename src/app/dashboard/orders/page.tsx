@@ -13,7 +13,9 @@ import {
   Facebook, 
   Send, 
   AlertCircle,
-  XCircle
+  XCircle,
+  Ghost,
+  Globe
 } from 'lucide-react';
 import Link from 'next/link';
 import { cn } from '@/lib/utils';
@@ -30,14 +32,16 @@ const XIcon = ({ className }: { className?: string }) => (
   <svg viewBox="0 0 24 24" fill="currentColor" className={className}><path d="M18.901 1.153h3.68l-8.04 9.19L24 22.846h-7.406l-5.8-7.584-6.638 7.584H.474l8.6-9.83L0 1.154h7.594l5.243 6.932ZM17.61 20.644h2.039L6.486 3.24H4.298Z" /></svg>
 );
 
+const ThreadsIcon = ({ className }: { className?: string }) => (
+  <svg viewBox="0 0 24 24" fill="currentColor" className={className}><path d="M12 2C6.477 2 2 6.477 2 12s4.477 10 10 10 10-4.477 10-10S17.523 2 12 2zm4.5 13.5c-1.5 1.5-3.5 1.5-4.5 1.5s-3-1-4-2.5c-1-1.5-1-3.5 0-5 1-1.5 3-2.5 4-2.5s3 0 4.5 1.5c1 1 1 3 0 4.5-1 1.5-2.5 2-2.5 2s-1-.5-1-1.5 1.5-2 2-3c.5-1 .5-2 0-2.5-.5-.5-1.5-.5-2 0s-.5 1.5 0 2.5c.5 1 1.5 1 1.5 1z" /></svg>
+);
+
 export default function OrdersPage() {
   const [activeTab, setActiveTab] = useState<'all' | 'pending_review' | 'processing' | 'completed' | 'canceled'>('all');
   
-  // Initial state from cache if available to prevent layout shift
   const cachedOrders = getPaginatedCache('userOrders')?.items || [];
   const [orders, setOrders] = useState<any[]>(cachedOrders);
   
-  // Only show loader if we have NO cached data and we are waiting for first snapshot
   const [loading, setLoading] = useState(cachedOrders.length === 0);
   const { user, loading: authLoading } = useAuth();
 
@@ -48,14 +52,12 @@ export default function OrdersPage() {
       return;
     }
 
-    // 1. Run background synchronization with Provider
     syncUserOrdersStatus(user.uid);
 
-    // 2. Setup real-time listener (Single Source of Truth)
     const unsubscribe = getUserOrdersStream(user.uid, (data) => {
       setOrders(data);
       updatePaginatedCache('userOrders', { items: data, lastVisible: null, hasMore: false });
-      setLoading(false); // Stop loading once first batch of data arrives
+      setLoading(false);
     });
 
     return () => {
@@ -74,13 +76,24 @@ export default function OrdersPage() {
 
   const getPlatformIcon = (platform: string) => {
     const p = platform?.toLowerCase() || '';
-    if (p.includes('instagram')) return { icon: Instagram, color: 'text-pink-600', bg: 'bg-pink-50' };
-    if (p.includes('tiktok')) return { icon: TikTokIcon, color: 'text-gray-900', bg: 'bg-gray-100' };
-    if (p.includes('facebook')) return { icon: Facebook, color: 'text-blue-600', bg: 'bg-blue-50' };
-    if (p.includes('youtube')) return { icon: Youtube, color: 'text-red-600', bg: 'bg-red-50' };
-    if (p.includes('twitter') || p.includes(' x ')) return { icon: XIcon, color: 'text-gray-900', bg: 'bg-gray-100' };
-    if (p.includes('telegram')) return { icon: Send, color: 'text-blue-400', bg: 'bg-blue-50' };
-    return { icon: Instagram, color: 'text-orange-500', bg: 'bg-orange-50' };
+    if (p.includes('instagram') || p.includes('ig') || p.includes('insta') || p.includes('انستقرام') || p.includes('انستا')) 
+      return { icon: Instagram, color: 'text-pink-600', bg: 'bg-pink-50' };
+    if (p.includes('tiktok') || p.includes('تيك') || p.includes('تيكتوك')) 
+      return { icon: TikTokIcon, color: 'text-black', bg: 'bg-gray-100' };
+    if (p.includes('facebook') || p.includes('فيسبوك') || p.includes('فيس')) 
+      return { icon: Facebook, color: 'text-blue-700', bg: 'bg-blue-50' };
+    if (p.includes('youtube') || p.includes('يوتيوب') || p.includes('يوتوب')) 
+      return { icon: Youtube, color: 'text-red-600', bg: 'bg-red-50' };
+    if (p.includes('twitter') || p.includes(' x ') || p.includes('تويتر')) 
+      return { icon: XIcon, color: 'text-gray-900', bg: 'bg-gray-100' };
+    if (p.includes('telegram') || p.includes('تليجرام') || p.includes('تلغرام')) 
+      return { icon: Send, color: 'text-blue-500', bg: 'bg-blue-50' };
+    if (p.includes('snapchat') || p.includes('snap') || p.includes('سناب')) 
+      return { icon: Ghost, color: 'text-yellow-600', bg: 'bg-yellow-50' };
+    if (p.includes('threads') || p.includes('ثريدز')) 
+      return { icon: ThreadsIcon, color: 'text-black', bg: 'bg-gray-100' };
+    
+    return { icon: Globe, color: 'text-orange-500', bg: 'bg-orange-50' };
   };
 
   const getTabButtonStyle = (tab: typeof activeTab) => {
@@ -93,7 +106,7 @@ export default function OrdersPage() {
   };
 
   return (
-    <div className="space-y-6 pb-24 text-right" dir="rtl">
+    <div className="space-y-6 pb-28 text-right" dir="rtl">
       <div className="flex items-center gap-2">
          <Link href="/dashboard"><button className="text-gray-400 p-0 h-10 w-10 flex items-center justify-center transition-none outline-none border-none bg-transparent active:bg-transparent"><ArrowRight className="h-5 w-5" /></button></Link>
          <div className="flex items-center gap-2">
@@ -117,7 +130,7 @@ export default function OrdersPage() {
           ) : filteredOrders.length > 0 ? (
             <>
               {filteredOrders.map((order, idx) => {
-                const platformInfo = getPlatformIcon(order.platform);
+                const platformInfo = getPlatformIcon(order.platform || order.title);
                 const Icon = platformInfo.icon;
                 return (
                   <div key={order.id || idx} className="bg-white p-5 rounded-[2.5rem] border border-gray-50 shadow-sm flex flex-col gap-4 relative overflow-hidden animate-in fade-in slide-in-from-bottom-2 duration-300">
