@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useState } from 'react';
@@ -64,7 +65,6 @@ const platforms = [
 export default function ServicesPage() {
   return (
     <div className="space-y-6 pb-24 text-right" dir="rtl">
-      {/* Header - Matching My Orders Page */}
       <div className="flex items-center gap-2">
          <Link href="/dashboard">
             <button className="text-gray-400 p-0 h-10 w-10 flex items-center justify-center bg-transparent border-none outline-none focus:outline-none active:bg-transparent hover:bg-transparent transition-none">

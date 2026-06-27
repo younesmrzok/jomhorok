@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useState, useEffect, useCallback } from 'react';
@@ -232,7 +233,7 @@ export default function AddFundsPage() {
         </div>
 
         <Tabs defaultValue="bank" onValueChange={handleTabChange} className="w-full" dir="rtl">
-          <div className="w-full px-1 overflow-x-auto scrollbar-hide flex items-center justify-start gap-2 mb-8 py-2">
+          <div className="w-full px-1 overflow-x-auto scrollbar-hide flex items-center justify-start gap-2 py-2">
             <TabsList className="bg-transparent h-auto p-0 flex items-center gap-2 border-none">
               <TabsTrigger value="bank" className="rounded-xl h-10 px-6 font-black text-xs flex items-center gap-2 border transition-colors outline-none data-[state=active]:bg-orange-500 data-[state=active]:text-white bg-white text-gray-500 border-gray-100 flex-row-reverse shadow-none hover:text-orange-500 data-[state=active]:hover:text-white"><span>تحويل بنكي</span><Building2 className="h-4 w-4" /></TabsTrigger>
               <TabsTrigger value="voucher" className="rounded-xl h-10 px-6 font-black text-xs flex items-center gap-2 border transition-colors outline-none data-[state=active]:bg-orange-500 data-[state=active]:text-white bg-white text-gray-500 border-gray-100 flex-row-reverse shadow-none hover:text-orange-500 data-[state=active]:hover:text-white"><span>تعبئة (Recharge)</span><Smartphone className="h-4 w-4" /></TabsTrigger>
@@ -240,7 +241,7 @@ export default function AddFundsPage() {
             </TabsList>
           </div>
 
-          <TabsContent value="bank" className="space-y-8 mt-4 outline-none">
+          <TabsContent value="bank" className="space-y-8 mt-6 outline-none">
             <div className="grid grid-cols-2 gap-4 w-full">
               {bankMethods.map((m) => (
                 <button 
@@ -361,7 +362,7 @@ export default function AddFundsPage() {
             )}
           </TabsContent>
 
-          <TabsContent value="voucher" className="space-y-8 mt-4 outline-none">
+          <TabsContent value="voucher" className="space-y-8 mt-6 outline-none">
             <div className="grid grid-cols-2 gap-4 w-full">
               {voucherMethods.map((v) => (
                 <button key={v.id} onClick={() => setMethod(v.id as any)} className={cn("flex flex-col items-center justify-center aspect-square rounded-[2.5rem] border transition-none gap-3 p-4 outline-none active:bg-orange-50", method === v.id ? "border-orange-500 bg-orange-50" : "bg-white border-gray-100")}>
@@ -426,7 +427,7 @@ export default function AddFundsPage() {
             )}
           </TabsContent>
 
-          <TabsContent value="history" className="space-y-6 mt-4 outline-none">
+          <TabsContent value="history" className="space-y-6 mt-6 outline-none">
             <div className="space-y-4">
               {historyLoading && shippingsState.items.length === 0 ? (
                 <div className="py-20 flex justify-center"><Loader2 className="h-10 w-10 animate-spin text-orange-500" /></div>

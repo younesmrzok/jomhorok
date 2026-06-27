@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useState, useEffect } from 'react';
@@ -33,7 +34,6 @@ import { logoutUser, changeUserPassword } from '@/firebase/auth-service';
 import { useToast } from '@/hooks/use-toast';
 import { useRouter } from 'next/navigation';
 import { updateUserData as updateDB } from '@/firebase/db-service';
-import { Input } from '@/components/ui/input';
 
 export default function SettingsPage() {
   const { user, userData, loading: authLoading } = useAuth();
@@ -142,7 +142,7 @@ export default function SettingsPage() {
          </div>
       </div>
 
-      <div className="px-1 space-y-8">
+      <div className="px-1 space-y-6">
         <div className="flex flex-col items-center gap-4 py-4">
           <div className="relative">
             <div className="w-32 h-32 rounded-full bg-orange-50 border-4 border-white shadow-md flex items-center justify-center overflow-hidden transition-none">

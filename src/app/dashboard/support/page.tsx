@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useState } from 'react';
@@ -97,7 +98,7 @@ export default function SupportPage() {
          </div>
       </div>
 
-      <div className="px-1 space-y-8">
+      <div className="px-1 space-y-6">
         {!isTicketFormOpen ? (
           <Card className="rounded-[2.5rem] bg-orange-500 border-none shadow-lg shadow-orange-500/20 overflow-hidden">
             <CardContent className="p-10 flex flex-col items-center text-center text-white gap-6">

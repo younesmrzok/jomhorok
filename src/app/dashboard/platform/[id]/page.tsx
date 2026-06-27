@@ -1,3 +1,4 @@
+
 "use client";
 
 import { use, useMemo, useEffect, useState } from 'react';
@@ -202,7 +203,7 @@ export default function PlatformPage({ params }: { params: Promise<{ id: string 
       </div>
 
       <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full" dir="rtl">
-        <div className="w-full overflow-x-auto scrollbar-hide mb-6 px-1 flex items-center justify-start gap-2 py-2">
+        <div className="w-full overflow-x-auto scrollbar-hide px-1 flex items-center justify-start gap-2 py-2">
           <TabsList className="bg-transparent h-auto p-0 flex items-center gap-2 border-none">
             <TabsTrigger value="followers" className="rounded-xl h-10 px-6 font-black text-xs shrink-0 flex items-center gap-2 border transition-colors data-[state=active]:bg-orange-500 data-[state=active]:text-white data-[state=active]:border-orange-500 bg-white text-gray-500 border-gray-100 flex-row-reverse shadow-none hover:text-orange-500 data-[state=active]:hover:text-white"><span>{platformId === 'telegram' ? 'أعضاء' : 'متابعين'}</span><User className="h-4 w-4" /></TabsTrigger>
             {platformId !== 'telegram' && (
@@ -213,7 +214,7 @@ export default function PlatformPage({ params }: { params: Promise<{ id: string 
         </div>
 
         {loading ? (<div className="py-20 flex justify-center"><Loader2 className="h-8 w-8 animate-spin text-orange-500" /></div>) : (
-          <div className="space-y-6 outline-none">
+          <div className="space-y-6 mt-6 outline-none">
             {activeServices.length > 0 ? (
               <><div className="grid grid-cols-2 md:grid-cols-3 gap-4 animate-in fade-in duration-300">
                   {activeServices.slice(0, visibleCounts[activeTab]).map((service) => (<ServiceCard key={service.service} service={service} platformId={platformId} />))}
