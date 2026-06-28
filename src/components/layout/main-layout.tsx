@@ -92,9 +92,8 @@ export function MainLayout({ children }: { children: React.ReactNode }) {
   if (!mounted || loading || !user) {
     return (
       <div className="flex items-center justify-center min-h-screen bg-[#F8F9FA]" dir="rtl">
-        <div className="flex flex-col items-center gap-4">
+        <div className="flex flex-col items-center justify-center">
           <Loader2 className="h-10 w-10 animate-spin text-orange-500" />
-          <p className="text-xs font-black text-gray-400 font-tajawal">جاري التحقق من الهوية...</p>
         </div>
       </div>
     );
