@@ -1,9 +1,11 @@
+
 "use client";
 
 import { useState, useEffect, useCallback } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { useRouter } from 'next/navigation';
 import { 
   AlertDialog,
   AlertDialogAction,
@@ -36,6 +38,7 @@ import {
 import Link from 'next/link';
 import { cn } from '@/lib/utils';
 import { useToast } from "@/hooks/use-toast";
+import { useAuth } from '@/firebase/hooks';
 import { 
   getPaginatedDocs,
   getExchangeRate,
@@ -53,6 +56,9 @@ import { getPaginatedCache, updatePaginatedCache } from '@/lib/pagination-store'
 
 export default function AdminDashboard() {
   const { toast } = useToast();
+  const router = useRouter();
+  const { user, userData, loading: authLoading } = useAuth();
+  
   const [searchTerm, setSearchTerm] = useState('');
   const [actionLoading, setActionLoading] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState('users');
@@ -78,6 +84,13 @@ export default function AdminDashboard() {
     onConfirm: () => {},
     variant: 'primary'
   });
+
+  // Strict Admin Authorization Check
+  useEffect(() => {
+    if (!authLoading && user && userData && !userData.isAdmin) {
+      router.replace('/dashboard');
+    }
+  }, [user, userData, authLoading, router]);
 
   const formatBalance = (val: number) => {
     return Number(val.toFixed(2)).toString();
@@ -117,16 +130,29 @@ export default function AdminDashboard() {
         console.error(error);
       }
     };
-    init();
-  }, []);
+    if (user && userData?.isAdmin) {
+      init();
+    }
+  }, [user, userData?.isAdmin, fetchData, usersState.items.length]);
 
   useEffect(() => {
-    if (activeTab === 'funding' && shippingsState.items.length === 0) {
-      fetchData('adminShippings', 'shippings', shippingsState, setShippingsState);
-    } else if (activeTab === 'support' && ticketsState.items.length === 0) {
-      fetchData('adminTickets', 'tickets', ticketsState, setTicketsState);
+    if (user && userData?.isAdmin) {
+      if (activeTab === 'funding' && shippingsState.items.length === 0) {
+        fetchData('adminShippings', 'shippings', shippingsState, setShippingsState);
+      } else if (activeTab === 'support' && ticketsState.items.length === 0) {
+        fetchData('adminTickets', 'tickets', ticketsState, setTicketsState);
+      }
     }
-  }, [activeTab]);
+  }, [activeTab, user, userData?.isAdmin, fetchData, shippingsState.items.length, ticketsState.items.length]);
+
+  if (authLoading || !userData?.isAdmin) {
+    return (
+      <div className="py-40 flex flex-col items-center justify-center gap-4">
+        <Loader2 className="h-10 w-10 animate-spin text-slate-900" />
+        <p className="text-xs font-black text-gray-400">جاري التحقق من صلاحيات المدير...</p>
+      </div>
+    );
+  }
 
   const openConfirm = (title: string, description: string, onConfirm: () => void, variant: 'danger' | 'primary' = 'primary') => {
     setConfirmConfig({ isOpen: true, title, description, onConfirm, variant });

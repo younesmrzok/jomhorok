@@ -2,7 +2,7 @@
 "use client";
 
 import { useState, useEffect } from 'react';
-import { Menu, Home, Grid, History, User, Heart, Mail, Settings, LogOut, ShieldCheck, X, Wallet } from 'lucide-react';
+import { Menu, Home, Grid, History, User, Heart, Mail, Settings, LogOut, ShieldCheck, X, Wallet, Loader2 } from 'lucide-react';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import Link from 'next/link';
 import Image from 'next/image';
@@ -30,6 +30,13 @@ export function MainLayout({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     setMounted(true);
   }, []);
+
+  // Strict Authentication Redirect
+  useEffect(() => {
+    if (mounted && !loading && !user) {
+      router.replace('/login');
+    }
+  }, [user, loading, mounted, router]);
 
   useEffect(() => {
     setOpen(false);
@@ -81,22 +88,14 @@ export function MainLayout({ children }: { children: React.ReactNode }) {
 
   const avatarUrl = getAvatarUrl();
 
-  if (!mounted) {
+  // Prevent any content from being visible while checking auth or redirecting
+  if (!mounted || loading || !user) {
     return (
-      <div className="flex flex-col min-h-screen bg-[#F8F9FA] text-right" dir="rtl" style={{ fontFamily: "'Tajawal', sans-serif" }}>
-        <header className="h-16 px-4 flex items-center justify-between sticky top-0 bg-white z-40 border-b border-gray-100">
-           <div className="text-orange-500 h-[38px] w-[38px] flex items-center justify-center bg-white border border-orange-100 rounded-xl"><Menu className="h-6 w-6" /></div>
-           <div className="flex items-center gap-2">
-             <Image src={headerLogoUrl} alt="جمهورك" width={38} height={38} className="object-contain" />
-             <span className="text-[22px] font-bold text-orange-500">جمهورك</span>
-           </div>
-           <div className="w-20" />
-        </header>
-        <main className="flex-1 max-w-lg mx-auto w-full flex flex-col">
-          <div className="flex-1 px-4 py-6">
-            {children}
-          </div>
-        </main>
+      <div className="flex items-center justify-center min-h-screen bg-[#F8F9FA]" dir="rtl">
+        <div className="flex flex-col items-center gap-4">
+          <Loader2 className="h-10 w-10 animate-spin text-orange-500" />
+          <p className="text-xs font-black text-gray-400 font-tajawal">جاري التحقق من الهوية...</p>
+        </div>
       </div>
     );
   }
