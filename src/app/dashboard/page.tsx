@@ -110,16 +110,11 @@ export default function DashboardOverview() {
       <div className="h-px bg-gray-200 w-full" />
 
       <div className="space-y-8">
-        <div className="text-center space-y-3.5 select-none">
-          <div className="flex items-center justify-center gap-3.5 mb-1">
-            <div className="p-2 bg-orange-50 rounded-xl -mt-1">
-               <Grid className="h-7 w-7 text-orange-500" />
-            </div>
-            <h2 className="text-2xl font-black text-gray-900 tracking-tight">الخدمات</h2>
+        <div className="flex flex-col items-center text-center select-none">
+          <div className="flex items-center gap-2.5">
+            <div className="w-1.5 h-6 bg-orange-500 rounded-full" />
+            <h2 className="text-xl font-black text-gray-900 tracking-tight">الخدمات الأكثر طلباً</h2>
           </div>
-          <p className="text-xs font-bold text-gray-400 max-w-[280px] mx-auto leading-relaxed">
-            اختر المنصة والخدمة المناسبة لبدء طلبك بكل سهولة.
-          </p>
         </div>
 
         <div className="grid grid-cols-2 lg:grid-cols-3 gap-4 px-1">
