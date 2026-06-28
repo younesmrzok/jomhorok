@@ -126,7 +126,7 @@ export default function OrdersPage() {
   };
 
   return (
-    <div className="space-y-6 pb-28 text-right" dir="rtl">
+    <div className="space-y-4 pb-28 text-right" dir="rtl">
       <div className="flex items-center gap-2">
          <Link href="/dashboard"><button className="text-gray-400 p-0 h-10 w-10 flex items-center justify-center transition-none outline-none border-none bg-transparent active:bg-transparent"><ArrowRight className="h-5 w-5" /></button></Link>
          <div className="flex items-center gap-2">

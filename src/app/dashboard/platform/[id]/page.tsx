@@ -199,7 +199,7 @@ export default function PlatformPage({ params }: { params: Promise<{ id: string 
   };
 
   return (
-    <div className="space-y-6 pb-24 text-right" dir="rtl">
+    <div className="space-y-4 pb-24 text-right" dir="rtl">
       <div className="flex items-center gap-2">
          <Link href="/dashboard/services"><button className="text-gray-400 p-0 h-10 w-10 flex items-center justify-center bg-transparent border-none outline-none transition-none active:scale-95"><ArrowRight className="h-5 w-5" /></button></Link>
          <div className="flex items-center gap-2"><div className="w-4 h-1 bg-orange-500 rounded-full" /><h1 className="text-xl font-black text-gray-900">خدمات {platformNames[platformId] || platformId}</h1></div>
