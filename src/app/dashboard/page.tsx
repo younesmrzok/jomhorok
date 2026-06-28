@@ -52,9 +52,15 @@ const XIcon = ({ className }: { className?: string }) => (
 export default function DashboardOverview() {
   const { user, userData, loading: authLoading } = useAuth();
   
+  // التحقق من الذاكرة المؤقتة للطلبات بشكل عام وليس فقط للرئيسية
+  const cachedOrders = getPaginatedCache('userOrders')?.items || [];
   const cachedRecent = getPaginatedCache('homeRecentOrders') || [];
-  const [recentOrders, setRecentOrders] = useState<any[]>(cachedRecent);
-  const [dataLoading, setDataLoading] = useState(cachedRecent.length === 0);
+  
+  // استخدام أفضل بيانات متوفرة فوراً
+  const initialOrders = cachedRecent.length > 0 ? cachedRecent : (cachedOrders.length > 0 ? cachedOrders.slice(0, 3) : []);
+  
+  const [recentOrders, setRecentOrders] = useState<any[]>(initialOrders);
+  const [dataLoading, setDataLoading] = useState(initialOrders.length === 0);
 
   useEffect(() => {
     if (authLoading || !user) {
@@ -62,12 +68,16 @@ export default function DashboardOverview() {
       return;
     }
 
-    // Sync status and orders
+    // مزامنة حالة الطلبات
     syncUserOrdersStatus(user.uid).catch(console.error);
 
+    // بدء البث الحي للبيانات
     const unsubscribe = getUserOrdersStream(user.uid, (data) => {
       if (data && Array.isArray(data)) {
+        // تحديث الذاكرة المؤقتة العامة للطلبات لضمان التزامن بين الصفحات
         updatePaginatedCache('userOrders', { items: data, lastVisible: null, hasMore: false });
+        
+        // تحديث القائمة المصغرة في الصفحة الرئيسية
         const top3 = data.slice(0, 3);
         setRecentOrders(top3);
         updatePaginatedCache('homeRecentOrders', top3);
@@ -75,10 +85,10 @@ export default function DashboardOverview() {
       setDataLoading(false);
     });
 
-    // Safety timeout
+    // صمام أمان لضمان إغلاق حالة التحميل في حال تأخر الاستجابة
     const safetyTimeout = setTimeout(() => {
       setDataLoading(false);
-    }, 5000);
+    }, 4000);
 
     return () => {
       if (unsubscribe) unsubscribe();
@@ -206,7 +216,7 @@ export default function DashboardOverview() {
         <div className="space-y-4 px-1 min-h-[100px] flex flex-col justify-center">
           {dataLoading && recentOrders.length === 0 ? (
             <div className="py-10 flex justify-center"><Loader2 className="h-6 w-6 animate-spin text-orange-500" /></div>
-          ) : (
+          ) : recentOrders.length > 0 ? (
             <>
               {recentOrders.map((order, idx) => {
                 const platformInfo = getPlatformIcon(order.platform || order.title);
@@ -259,8 +269,9 @@ export default function DashboardOverview() {
                   </div>
                 );
               })}
-              {recentOrders.length === 0 && !dataLoading && <div className="py-10 text-center text-gray-300 text-[10px] font-black uppercase tracking-widest">لا توجد طلبات سابقة لعرضها</div>}
             </>
+          ) : (
+            <div className="py-10 text-center text-gray-300 text-[10px] font-black uppercase tracking-widest">لا توجد طلبات سابقة لعرضها</div>
           )}
         </div>
       </div>
