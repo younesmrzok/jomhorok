@@ -52,47 +52,32 @@ const XIcon = ({ className }: { className?: string }) => (
 export default function DashboardOverview() {
   const { user, userData, loading: authLoading } = useAuth();
   
-  // التحقق من الذاكرة المؤقتة للطلبات بشكل عام وليس فقط للرئيسية
+  // تهيئة الحالة من الذاكرة المؤقتة إن وجدت لتسريع العرض
   const cachedOrders = getPaginatedCache('userOrders')?.items || [];
-  const cachedRecent = getPaginatedCache('homeRecentOrders') || [];
-  
-  // استخدام أفضل بيانات متوفرة فوراً
-  const initialOrders = cachedRecent.length > 0 ? cachedRecent : (cachedOrders.length > 0 ? cachedOrders.slice(0, 3) : []);
-  
-  const [recentOrders, setRecentOrders] = useState<any[]>(initialOrders);
-  const [dataLoading, setDataLoading] = useState(initialOrders.length === 0);
+  const [recentOrders, setRecentOrders] = useState<any[]>(cachedOrders.slice(0, 3));
+  const [dataLoading, setDataLoading] = useState(cachedOrders.length === 0);
 
   useEffect(() => {
-    if (authLoading || !user) {
-      if (!authLoading && !user) setDataLoading(false);
-      return;
-    }
+    if (authLoading || !user) return;
 
-    // مزامنة حالة الطلبات
-    syncUserOrdersStatus(user.uid).catch(console.error);
+    // مزامنة حالة الطلبات في الخلفية
+    syncUserOrdersStatus(user.uid).catch(() => {});
 
-    // بدء البث الحي للبيانات
+    // بدء البث الحي للبيانات بشكل مباشر ومستقل
     const unsubscribe = getUserOrdersStream(user.uid, (data) => {
       if (data && Array.isArray(data)) {
-        // تحديث الذاكرة المؤقتة العامة للطلبات لضمان التزامن بين الصفحات
+        // تحديث الذاكرة المؤقتة العامة لضمان التزامن
         updatePaginatedCache('userOrders', { items: data, lastVisible: null, hasMore: false });
         
-        // تحديث القائمة المصغرة في الصفحة الرئيسية
-        const top3 = data.slice(0, 3);
-        setRecentOrders(top3);
-        updatePaginatedCache('homeRecentOrders', top3);
+        // عرض آخر 3 طلبات
+        setRecentOrders(data.slice(0, 3));
       }
+      // إيقاف التحميل فقط عند استلام رد من قاعدة البيانات
       setDataLoading(false);
     });
 
-    // صمام أمان لضمان إغلاق حالة التحميل في حال تأخر الاستجابة
-    const safetyTimeout = setTimeout(() => {
-      setDataLoading(false);
-    }, 4000);
-
     return () => {
       if (unsubscribe) unsubscribe();
-      clearTimeout(safetyTimeout);
     };
   }, [user?.uid, authLoading]);
 
@@ -214,7 +199,7 @@ export default function DashboardOverview() {
         </div>
 
         <div className="space-y-4 px-1 min-h-[100px] flex flex-col justify-center">
-          {dataLoading && recentOrders.length === 0 ? (
+          {dataLoading ? (
             <div className="py-10 flex justify-center"><Loader2 className="h-6 w-6 animate-spin text-orange-500" /></div>
           ) : recentOrders.length > 0 ? (
             <>
