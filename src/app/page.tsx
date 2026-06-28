@@ -220,11 +220,11 @@ export default function LandingPage() {
 
           <section className="text-center px-6 mt-5 space-y-4">
             <h1 className="text-3xl md:text-4xl font-black text-slate-900 leading-[1.35] tracking-tight">
-              جميع خدمات <span className="text-orange-500">مواقع</span>
+              جميع خدمات مواقع
               <br />
-              <span className="text-orange-500">التواصل الاجتماعي</span> في
+              <span className="text-orange-500">التواصل الاجتماعي</span> <span className="inline-block">في</span>
               <br />
-              مكان واحد
+              <span className="inline-block">مكان واحد</span>
             </h1>
 
             <p className="text-[13px] text-slate-500/90 leading-relaxed font-black px-4 max-w-sm mx-auto">
