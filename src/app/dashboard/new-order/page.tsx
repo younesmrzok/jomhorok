@@ -208,7 +208,7 @@ function OrderInterface() {
         price: totalPrice
       });
 
-      toast({ variant: "success", title: "تم الطلب بنجاح", description: "طلبك قيد التنفيذ حالياً" });
+      toast({ variant: "success", title: "تم الطلب بنجاح", description: "طلبك قيد المعالجة حالياً" });
       router.push('/dashboard/orders');
     } catch (error: any) {
       toast({ variant: "destructive", title: "فشل إتمام الطلب", description: error.message });
