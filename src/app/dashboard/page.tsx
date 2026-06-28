@@ -58,26 +58,36 @@ export default function DashboardOverview() {
   const [dataLoading, setDataLoading] = useState(cachedOrders.length === 0);
 
   useEffect(() => {
-    if (authLoading || !user) return;
+    if (authLoading || !user) {
+      if (!authLoading && !user) setDataLoading(false);
+      return;
+    }
+
+    // صمام أمان لضمان إيقاف أيقونة التحميل حتى لو تأخرت استجابة قاعدة البيانات (مثل ما هو موجود في صفحة الطلبات)
+    const safetyTimeout = setTimeout(() => {
+      setDataLoading(false);
+    }, 4000);
 
     // مزامنة حالة الطلبات في الخلفية
     syncUserOrdersStatus(user.uid).catch(() => {});
 
-    // بدء البث الحي للبيانات بشكل مباشر ومستقل
+    // بدء البث الحي للبيانات بشكل مباشر وفوري
     const unsubscribe = getUserOrdersStream(user.uid, (data) => {
       if (data && Array.isArray(data)) {
-        // تحديث الذاكرة المؤقتة العامة لضمان التزامن
+        // تحديث الذاكرة المؤقتة العامة لضمان التزامن بين كافة صفحات الموقع
         updatePaginatedCache('userOrders', { items: data, lastVisible: null, hasMore: false });
         
-        // عرض آخر 3 طلبات
+        // عرض آخر 3 طلبات فقط في الواجهة الرئيسية
         setRecentOrders(data.slice(0, 3));
       }
-      // إيقاف التحميل فقط عند استلام رد من قاعدة البيانات
+      // إيقاف التحميل فور وصول أي استجابة (حتى لو كانت قائمة فارغة)
       setDataLoading(false);
+      clearTimeout(safetyTimeout);
     });
 
     return () => {
       if (unsubscribe) unsubscribe();
+      clearTimeout(safetyTimeout);
     };
   }, [user?.uid, authLoading]);
 
