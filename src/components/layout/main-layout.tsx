@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useState, useEffect } from 'react';
@@ -16,6 +17,8 @@ import {
 } from "@/components/ui/sheet";
 import { useAuth } from '@/firebase/hooks';
 import { logoutUser } from '@/firebase/auth-service';
+import { clearPaginatedCache } from '@/lib/pagination-store';
+import { clearServicesCache } from '@/lib/services-store';
 
 export function MainLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
@@ -53,6 +56,9 @@ export function MainLayout({ children }: { children: React.ReactNode }) {
 
   const handleLogout = async () => {
     try {
+      // Clear all client-side caches before logging out
+      clearPaginatedCache();
+      clearServicesCache();
       await logoutUser();
       router.push('/login');
     } catch (error) {

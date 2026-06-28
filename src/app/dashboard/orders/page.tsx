@@ -53,19 +53,26 @@ export default function OrdersPage() {
       return;
     }
 
-    // Attempt to sync but don't block display
+    // Safety timeout to ensure loading spinner doesn't stay forever
+    const safetyTimeout = setTimeout(() => {
+      setLoading(false);
+    }, 4000);
+
+    // Attempt to sync
     syncUserOrdersStatus(user.uid).catch(console.error);
 
     const unsubscribe = getUserOrdersStream(user.uid, (data) => {
-      if (data && Array.isArray(data)) {
+      if (data) {
         setOrders(data);
         updatePaginatedCache('userOrders', { items: data, lastVisible: null, hasMore: false });
       }
       setLoading(false);
+      clearTimeout(safetyTimeout);
     });
 
     return () => {
       if (unsubscribe) unsubscribe();
+      clearTimeout(safetyTimeout);
     };
   }, [user?.uid, authLoading]);
 

@@ -34,6 +34,8 @@ import { logoutUser, changeUserPassword } from '@/firebase/auth-service';
 import { useToast } from '@/hooks/use-toast';
 import { useRouter } from 'next/navigation';
 import { updateUserData as updateDB } from '@/firebase/db-service';
+import { clearPaginatedCache } from '@/lib/pagination-store';
+import { clearServicesCache } from '@/lib/services-store';
 
 export default function SettingsPage() {
   const { user, userData, loading: authLoading } = useAuth();
@@ -109,6 +111,8 @@ export default function SettingsPage() {
 
   const handleLogout = async () => {
     try {
+      clearPaginatedCache();
+      clearServicesCache();
       await logoutUser();
       router.push('/login');
     } catch (error) {
