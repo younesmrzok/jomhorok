@@ -220,9 +220,9 @@ export default function LandingPage() {
 
           <section className="text-center px-6 mt-5 space-y-4">
             <h1 className="text-3xl md:text-4xl font-black text-slate-900 leading-[1.25] tracking-tight">
-              نقدم لك أفضل خدمات
+              جميع خدمات
               <br />
-              <span className="text-orange-500">السوشيال ميديا</span> بجودة عالية
+              <span className="text-orange-500">مواقع التواصل الاجتماعي</span> في مكان واحد
             </h1>
 
             <p className="text-[13px] text-slate-500/90 leading-relaxed font-black px-4 max-w-sm mx-auto">
