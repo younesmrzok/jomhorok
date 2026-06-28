@@ -1,4 +1,3 @@
-
 "use client";
 
 import { useState, useEffect, useCallback } from 'react';
@@ -468,7 +467,7 @@ export default function AddFundsPage() {
                     <button 
                       onClick={() => loadHistory()} 
                       disabled={historyLoading} 
-                      className="w-full py-5 bg-white rounded-[2rem] border border-orange-100 text-orange-500 font-black text-xs flex items-center justify-center gap-2 transition-all outline-none active:scale-[0.98]"
+                      className="w-full max-w-[280px] mx-auto py-5 bg-white rounded-[2rem] border border-orange-100 text-orange-500 font-black text-xs flex items-center justify-center gap-2 transition-all outline-none active:scale-[0.98]"
                     >
                       {historyLoading ? <Loader2 className="animate-spin h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
                       <span>عرض المزيد</span>

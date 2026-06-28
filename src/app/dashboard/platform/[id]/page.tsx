@@ -1,4 +1,3 @@
-
 "use client";
 
 import { use, useMemo, useEffect, useState } from 'react';
@@ -223,7 +222,7 @@ export default function PlatformPage({ params }: { params: Promise<{ id: string 
                   {activeServices.slice(0, visibleCounts[activeTab]).map((service) => (<ServiceCard key={service.service} service={service} platformId={platformId} />))}
                 </div>
                 {activeServices.length > visibleCounts[activeTab] && (
-                  <div className="pt-4 flex justify-center"><button onClick={() => setVisibleCounts(v => ({...v, [activeTab]: v[activeTab] + 10}))} className="w-full py-5 bg-white rounded-[2rem] border border-orange-100 text-orange-500 font-black text-xs flex items-center justify-center gap-2 transition-all outline-none active:scale-[0.98]"><ChevronDown className="h-4 w-4" /><span>عرض المزيد من الخدمات</span></button></div>
+                  <div className="pt-4 flex justify-center"><button onClick={() => setVisibleCounts(v => ({...v, [activeTab]: v[activeTab] + 10}))} className="w-full max-w-[280px] mx-auto py-5 bg-white rounded-[2rem] border border-orange-100 text-orange-500 font-black text-xs flex items-center justify-center gap-2 transition-all outline-none active:scale-[0.98]"><ChevronDown className="h-4 w-4" /><span>عرض المزيد من الخدمات</span></button></div>
                 )}</>
             ) : (<div className="py-20 text-center text-gray-400 font-black text-xs">لا توجد خدمات حالياً في هذا القسم</div>)}
           </div>

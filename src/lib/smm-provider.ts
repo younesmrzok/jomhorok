@@ -162,8 +162,10 @@ export async function smmServicesByPlatform(platformId: string): Promise<SmmServ
     const config = platformConfigs[platformId.toLowerCase()];
     if (!config) return [];
 
+    const excludedIds = ['12995', '15354'];
+
     return allServices.filter((s) => {
-      if (s.service === '12995' || s.service.toString() === '12995') return false;
+      if (excludedIds.includes(s.service.toString())) return false;
 
       const combined = (s.category + " " + s.name).toLowerCase();
       const hasPositive = config.pos.some(k => combined.includes(k));
@@ -212,7 +214,8 @@ export async function smmServices() {
     const services = await response.json();
     
     if (Array.isArray(services)) {
-      return services.filter((s: any) => s.service !== '12995' && s.service.toString() !== '12995');
+      const excludedIds = ['12995', '15354'];
+      return services.filter((s: any) => !excludedIds.includes(s.service.toString()));
     }
     return services;
   } catch (error) {
