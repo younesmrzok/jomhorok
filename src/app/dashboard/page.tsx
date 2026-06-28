@@ -13,7 +13,8 @@ import {
   Send,
   TrendingDown,
   TrendingUp,
-  Globe
+  Globe,
+  Grid
 } from 'lucide-react';
 import Link from 'next/link';
 import { cn } from '@/lib/utils';
@@ -65,7 +66,7 @@ export default function DashboardOverview() {
     { id: 'telegram', name: 'تليجرام', sub: 'خدمات تليجرام', icon: Send, color: 'text-blue-400', bg: 'bg-blue-50' },
   ];
 
-  const viewAllButtonStyle = "text-[13px] font-black text-orange-500 px-8 py-3 rounded-2xl border border-orange-100 bg-white hover:bg-orange-50/50 active:scale-95 transition-all outline-none uppercase tracking-wide inline-flex items-center justify-center shadow-sm";
+  const viewAllButtonStyle = "text-[13px] font-black text-orange-500 px-8 py-3 rounded-2xl border border-orange-100 bg-white active:scale-95 transition-all outline-none uppercase tracking-wide inline-flex items-center justify-center shadow-sm";
 
   return (
     <div className="flex flex-col gap-8 pb-10" dir="rtl">
@@ -106,11 +107,14 @@ export default function DashboardOverview() {
         </CardContent>
       </Card>
 
-      <div className="h-px bg-gray-100 w-full" />
+      <div className="h-px bg-gray-200 w-full" />
 
       <div className="space-y-8">
         <div className="text-center space-y-2 select-none">
-          <h2 className="text-2xl font-black text-gray-900 tracking-tight">الخدمات</h2>
+          <div className="flex items-center justify-center gap-2.5 mb-1">
+            <Grid className="h-6 w-6 text-orange-500" />
+            <h2 className="text-2xl font-black text-gray-900 tracking-tight">الخدمات</h2>
+          </div>
           <p className="text-xs font-bold text-gray-400 max-w-[280px] mx-auto leading-relaxed">
             اختر المنصة والخدمة المناسبة لبدء طلبك بكل سهولة.
           </p>
