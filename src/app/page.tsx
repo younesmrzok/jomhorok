@@ -224,7 +224,7 @@ export default function LandingPage() {
               <br />
               <span className="text-orange-500">التواصل الاجتماعي</span>
               <br />
-              في مكان واحد
+              <span className="inline-block">في مكان واحد</span>
             </h1>
 
             <p className="text-[13px] text-slate-500/90 leading-relaxed font-black px-4 max-w-sm mx-auto">
@@ -339,8 +339,6 @@ export default function LandingPage() {
             </Link>
           </section>
 
-          <div className="h-px bg-gray-200 w-full mt-6" />
-
           <section className="px-5 mt-8 mb-8">
             <div className="bg-white border border-slate-50 p-5 rounded-3xl shadow-xs grid grid-cols-3 gap-2">
               <div className="text-center flex flex-col items-center justify-center">
@@ -435,7 +433,7 @@ export default function LandingPage() {
               {faqs.map((faq, i) => (
                 <AccordionItem key={i} value={`item-${i}`} className="border-none bg-white rounded-[2rem] px-6 shadow-sm overflow-hidden">
                   <AccordionTrigger className="hover:no-underline py-5 text-right outline-none focus:outline-none">
-                     <span className="text-[13px] font-black text-gray-800 leading-tight">{faq.q}</span>
+                     <span className="text-[13px] font-black text-gray-800 profitability leading-tight">{faq.q}</span>
                   </AccordionTrigger>
                   <AccordionContent className="text-[12px] font-black text-gray-500 leading-relaxed pb-6 text-right">
                     {faq.a}
