@@ -1,7 +1,6 @@
 
 "use client";
 
-import { useState, useEffect } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { 
@@ -12,18 +11,13 @@ import {
   Youtube,
   Facebook,
   Send,
-  ArrowUpRight,
   TrendingDown,
-  Loader2,
   TrendingUp,
   Globe
 } from 'lucide-react';
 import Link from 'next/link';
 import { cn } from '@/lib/utils';
 import { useAuth } from '@/firebase/hooks';
-import { getUserOrdersStream } from '@/firebase/db-service';
-import { syncUserOrdersStatus } from '@/firebase/finance-service';
-import { getPaginatedCache, updatePaginatedCache } from '@/lib/pagination-store';
 
 const TikTokIcon = ({ className }: { className?: string }) => (
   <svg 
@@ -50,54 +44,10 @@ const XIcon = ({ className }: { className?: string }) => (
 );
 
 export default function DashboardOverview() {
-  const { user, userData, loading: authLoading } = useAuth();
-  
-  const cachedOrders = getPaginatedCache('userOrders')?.items || [];
-  const [recentOrders, setRecentOrders] = useState<any[]>(cachedOrders.slice(0, 3));
-  const [dataLoading, setDataLoading] = useState(true);
-
-  useEffect(() => {
-    if (authLoading) return;
-
-    if (!user) {
-      setDataLoading(false);
-      return;
-    }
-
-    const safetyTimeout = setTimeout(() => {
-      setDataLoading(false);
-    }, 8000);
-
-    syncUserOrdersStatus(user.uid).catch(() => {});
-
-    const unsubscribe = getUserOrdersStream(user.uid, (data) => {
-      if (data !== null) {
-        updatePaginatedCache('userOrders', { items: data, lastVisible: null, hasMore: false });
-        setRecentOrders(data.slice(0, 3));
-      }
-      setDataLoading(false);
-      clearTimeout(safetyTimeout);
-    });
-
-    return () => {
-      if (unsubscribe) unsubscribe();
-      clearTimeout(safetyTimeout);
-    };
-  }, [user?.uid, authLoading]);
+  const { authLoading, userData } = useAuth();
 
   const formatBalance = (val: number) => {
     return Number(val || 0).toFixed(2);
-  };
-
-  const getPlatformIcon = (platform: string) => {
-    const p = platform?.toLowerCase() || '';
-    if (p.includes('instagram') || p.includes('ig') || p.includes('insta') || p.includes('انستا') || p.includes('انستقرام')) return { icon: Instagram, color: 'text-pink-600', bg: 'bg-pink-50' };
-    if (p.includes('tiktok') || p.includes('تيك') || p.includes('تيكتوك')) return { icon: TikTokIcon, color: 'text-black', bg: 'bg-gray-100' };
-    if (p.includes('facebook') || p.includes('فيسبوك') || p.includes('فيس')) return { icon: Facebook, color: 'text-blue-700', bg: 'bg-blue-50' };
-    if (p.includes('youtube') || p.includes('يوتيوب') || p.includes('يوتوب')) return { icon: Youtube, color: 'text-red-600', bg: 'bg-red-50' };
-    if (p.includes('twitter') || p.includes(' x ') || p.includes('تويتر')) return { icon: XIcon, color: 'text-gray-900', bg: 'bg-gray-100' };
-    if (p.includes('telegram') || p.includes('تليجرام') || p.includes('تلغرام')) return { icon: Send, color: 'text-blue-500', bg: 'bg-blue-50' };
-    return { icon: Globe, color: 'text-orange-500', bg: 'bg-orange-50' };
   };
 
   const balances = [
@@ -115,7 +65,7 @@ export default function DashboardOverview() {
     { id: 'telegram', name: 'تليجرام', sub: 'خدمات تليجرام', icon: Send, color: 'text-blue-400', bg: 'bg-blue-50' },
   ];
 
-  const viewAllButtonStyle = "text-[13px] font-bold text-orange-500 px-5 py-2 rounded-xl border border-orange-100 bg-orange-50/20 hover:bg-orange-50/30 active:scale-95 transition-all outline-none uppercase tracking-wide inline-block";
+  const viewAllButtonStyle = "text-[13px] font-black text-orange-500 px-8 py-3 rounded-2xl border border-orange-100 bg-white hover:bg-orange-50/50 active:scale-95 transition-all outline-none uppercase tracking-wide inline-flex items-center justify-center shadow-sm";
 
   return (
     <div className="flex flex-col gap-8 pb-10" dir="rtl">
@@ -156,20 +106,17 @@ export default function DashboardOverview() {
         </CardContent>
       </Card>
 
-      <div className="h-px bg-gray-200 w-full" />
+      <div className="h-px bg-gray-100 w-full" />
 
-      <div className="space-y-6">
-        <div className="flex items-center justify-between px-2 select-none">
-          <div className="flex items-center gap-2.5">
-             <div className="w-1.5 h-6 bg-orange-500 rounded-full"></div>
-             <h2 className="text-xl font-black text-gray-900 tracking-tight">الخدمات</h2>
-          </div>
-          <Link href="/dashboard/services" className={viewAllButtonStyle}>
-            عرض الكل
-          </Link>
+      <div className="space-y-8">
+        <div className="text-center space-y-2 select-none">
+          <h2 className="text-2xl font-black text-gray-900 tracking-tight">الخدمات</h2>
+          <p className="text-xs font-bold text-gray-400 max-w-[280px] mx-auto leading-relaxed">
+            اختر المنصة والخدمة المناسبة لبدء طلبك بكل سهولة.
+          </p>
         </div>
 
-        <div className="grid grid-cols-2 lg:grid-cols-3 gap-4">
+        <div className="grid grid-cols-2 lg:grid-cols-3 gap-4 px-1">
           {platforms.map((platform, idx) => {
             const Icon = platform.icon;
             return (
@@ -187,84 +134,11 @@ export default function DashboardOverview() {
             );
           })}
         </div>
-      </div>
 
-      <div className="h-px bg-gray-200 w-full" />
-
-      <div className="space-y-6">
-        <div className="flex items-center justify-between px-2 select-none">
-          <div className="flex items-center gap-2.5">
-             <div className="w-1.5 h-6 bg-orange-500 rounded-full"></div>
-             <h2 className="text-xl font-black text-gray-900 tracking-tight">آخر الطلبات</h2>
-          </div>
-          <Link href="/dashboard/orders" className={viewAllButtonStyle}>
-            عرض الكل
+        <div className="flex justify-center pt-4">
+          <Link href="/dashboard/services" className={viewAllButtonStyle}>
+            عرض جميع الخدمات
           </Link>
-        </div>
-
-        <div className="space-y-4 px-1 min-h-[100px] flex flex-col justify-center">
-          {dataLoading ? (
-            <div className="py-10 flex justify-center"><Loader2 className="h-6 w-6 animate-spin text-orange-500" /></div>
-          ) : recentOrders.length > 0 ? (
-            <>
-              {recentOrders.map((order, idx) => {
-                const platformInfo = getPlatformIcon(order.platform || order.title);
-                const Icon = platformInfo.icon;
-                
-                let displayStatus = order.status;
-                if (displayStatus === 'قيد المراجعة' || displayStatus === 'Pending' || displayStatus === 'Processing') displayStatus = 'قيد المعالجة';
-                if (displayStatus === 'In progress' || displayStatus === 'In Progress') displayStatus = 'قيد التنفيذ';
-                if (displayStatus === 'Completed' || displayStatus === 'Partial') displayStatus = 'مكتمل';
-                if (displayStatus === 'Canceled' || displayStatus === 'Cancelled' || displayStatus === 'Refunded') displayStatus = 'ملغي';
-
-                return (
-                  <div key={order.id || idx} className="bg-white p-5 rounded-[2.5rem] border border-gray-50 shadow-sm flex flex-col gap-4 relative overflow-hidden">
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center gap-3">
-                        <div className={cn("w-10 h-10 rounded-xl flex items-center justify-center shadow-sm", platformInfo.bg)}><Icon className={cn("h-5 w-5", platformInfo.color)} /></div>
-                        <div className="flex flex-col text-right"><span className="text-[12px] font-black text-gray-900 leading-none">ID: #{order.apiOrderId || '...'}</span><span className="text-[9px] font-bold text-gray-300 mt-1">{order.createdAt ? new Date(order.createdAt).toLocaleDateString('ar-MA') : '...'}</span></div>
-                      </div>
-                      <div className={cn(
-                        "px-3 py-1.5 rounded-full text-[9px] font-black uppercase tracking-widest", 
-                        displayStatus === 'مكتمل' ? "bg-green-50 text-green-600" : 
-                        displayStatus === 'قيد التنفيذ' ? "bg-blue-50 text-blue-600" : 
-                        displayStatus === 'قيد المعالجة' ? "bg-slate-50 text-slate-600" :
-                        displayStatus === 'ملغي' ? "bg-red-50 text-red-600" :
-                        "bg-orange-50 text-orange-600"
-                      )}>
-                        {displayStatus}
-                      </div>
-                    </div>
-                    <h4 className="text-[12px] font-black text-gray-800 leading-tight pr-1 line-clamp-1">{order.title}</h4>
-                    <div className="flex items-center justify-between pt-2 border-t border-gray-50">
-                      <div className="flex gap-6">
-                        <div className="flex flex-col">
-                          <span className="text-[9px] font-bold text-gray-400 uppercase tracking-tight">الكمية</span>
-                          <span className="text-sm font-black text-gray-700">{order.quantity?.toLocaleString() || '...'}</span>
-                        </div>
-                        <div className="flex flex-col">
-                          <span className="text-[9px] font-bold text-gray-400 uppercase tracking-tight">المبلغ</span>
-                          <span className="text-sm font-black text-green-600">${Number(order.price || 0).toFixed(2)}</span>
-                        </div>
-                      </div>
-                      {order.link && (
-                        <a 
-                          href={order.link.startsWith('http') ? order.link : `https://${order.link}`} 
-                          target="_blank" 
-                          rel="noopener noreferrer" 
-                          className="flex items-center gap-1.5 text-orange-500 font-black text-[10px] px-3 py-2"
-                        >
-                          انتقال للرابط <ArrowUpRight className="h-3 w-3" />
-                        </a>
-                      )}
-                    </div>
-                  </div>
-                );
-              })}
-            </>
-          ) : (
-            <div className="py-10 text-center text-gray-300 text-[10px] font-black uppercase tracking-widest">لا توجد طلبات سابقة لعرضها</div>
-          )}
         </div>
       </div>
     </div>
