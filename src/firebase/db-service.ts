@@ -57,6 +57,7 @@ export const getPaginatedDocs = async (
     };
   } catch (error) {
     console.error(`Error fetching paginated ${collectionName}:`, error);
+    // Fallback without ordering if it fails (likely index issue)
     if (orderCol) {
        return getPaginatedDocs(collectionName, pageSize, lastDoc, additionalQueries, null);
     }
@@ -131,6 +132,7 @@ export const getUserOrdersStream = (uid: string, callback: (data: any[] | null) 
   if (!uid) return null;
   
   try {
+    // We use a simple query first to avoid immediate index requirement failures
     const q = query(
       collection(db, "orders"), 
       where("userId", "==", uid), 
@@ -141,8 +143,23 @@ export const getUserOrdersStream = (uid: string, callback: (data: any[] | null) 
       const orders = snap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
       callback(orders);
     }, (error) => {
-      console.error("Orders Stream Error:", error);
-      callback(null); // Signal that something went wrong
+      console.error("Orders Stream Error (possibly missing index):", error);
+      
+      // Fallback to non-ordered stream if ordered fails
+      const fallbackQuery = query(
+        collection(db, "orders"),
+        where("userId", "==", uid)
+      );
+      
+      return onSnapshot(fallbackQuery, (fallbackSnap) => {
+        const fallbackOrders = fallbackSnap.docs
+          .map(doc => ({ id: doc.id, ...doc.data() }))
+          .sort((a: any, b: any) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+        callback(fallbackOrders);
+      }, (fallbackError) => {
+        console.error("Fallback Stream Error:", fallbackError);
+        callback(null);
+      });
     });
   } catch (e) {
     console.error("Stream setup error:", e);

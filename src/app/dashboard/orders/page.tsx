@@ -38,27 +38,43 @@ const ThreadsIcon = ({ className }: { className?: string }) => (
 );
 
 export default function OrdersPage() {
+  const [mounted, setMounted] = useState(false);
   const [activeTab, setActiveTab] = useState<'all' | 'pending_processing' | 'processing' | 'completed' | 'canceled'>('all');
-  
-  const cachedData = getPaginatedCache('userOrders');
-  const initialOrders = cachedData?.items || [];
-  const [orders, setOrders] = useState<any[]>(initialOrders);
-  
-  const [loading, setLoading] = useState(initialOrders.length === 0);
+  const [orders, setOrders] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
   const { user, loading: authLoading } = useAuth();
 
+  // Initial mount and cache recovery
   useEffect(() => {
-    if (authLoading || !user) {
-      if (!authLoading && !user) setLoading(false);
+    setMounted(true);
+    const cached = getPaginatedCache('userOrders');
+    if (cached && cached.items && cached.items.length > 0) {
+      setOrders(cached.items);
+      setLoading(false);
+    }
+  }, []);
+
+  // Robust data fetching and sync
+  useEffect(() => {
+    if (!mounted || authLoading || !user) {
+      if (!authLoading && !user && mounted) setLoading(false);
       return;
     }
 
+    // 1. Initial Sync & State Update
+    const performInitialSync = async () => {
+      try {
+        await syncUserOrdersStatus(user.uid);
+      } catch (e) {
+        console.error("Orders status sync failed:", e);
+      }
+    };
+    performInitialSync();
+
+    // 2. Setup Real-time Stream
     const safetyTimeout = setTimeout(() => {
       setLoading(false);
-    }, 8000);
-
-    // Sync statuses
-    syncUserOrdersStatus(user.uid).catch(console.error);
+    }, 5000);
 
     const unsubscribe = getUserOrdersStream(user.uid, (data) => {
       if (data !== null) {
@@ -73,7 +89,9 @@ export default function OrdersPage() {
       if (unsubscribe) unsubscribe();
       clearTimeout(safetyTimeout);
     };
-  }, [user?.uid, authLoading]);
+  }, [user?.uid, authLoading, mounted]);
+
+  if (!mounted) return null;
 
   const filteredOrders = orders.filter((order: any) => {
     const status = order.status;
