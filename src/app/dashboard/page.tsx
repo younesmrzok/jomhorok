@@ -64,22 +64,17 @@ export default function DashboardOverview() {
       return;
     }
 
-    // Safety fallback to stop loader if Firestore is extremely slow on fresh land
     const safetyTimeout = setTimeout(() => {
       setDataLoading(false);
     }, 8000);
 
-    // Run sync in background
     syncUserOrdersStatus(user.uid).catch(() => {});
 
-    // Listen for orders with enhanced reliability
     const unsubscribe = getUserOrdersStream(user.uid, (data) => {
       if (data !== null) {
         updatePaginatedCache('userOrders', { items: data, lastVisible: null, hasMore: false });
         setRecentOrders(data.slice(0, 3));
       }
-      
-      // Stop loading once we get the first snapshot (even if empty)
       setDataLoading(false);
       clearTimeout(safetyTimeout);
     });
@@ -167,7 +162,7 @@ export default function DashboardOverview() {
         <div className="flex items-center justify-between px-2 select-none">
           <div className="flex items-center gap-2.5">
              <div className="w-1.5 h-6 bg-orange-500 rounded-full"></div>
-             <h2 className="text-xl font-black text-gray-900 tracking-tight">اختر منصتك</h2>
+             <h2 className="text-xl font-black text-gray-900 tracking-tight">الخدمات</h2>
           </div>
           <Link href="/dashboard/services" className={viewAllButtonStyle}>
             عرض الكل

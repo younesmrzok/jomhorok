@@ -44,7 +44,7 @@ export function MainLayout({ children }: { children: React.ReactNode }) {
 
   const sidebarLinks = [
     { label: 'الرئيسية', href: '/dashboard', icon: Home },
-    { label: 'دليل الخدمات', href: '/dashboard/services', icon: Grid },
+    { label: 'الخدمات', href: '/dashboard/services', icon: Grid },
     { label: 'سجل الطلبات', href: '/dashboard/orders', icon: History },
     { label: 'شحن الرصيد', href: '/dashboard/add-funds', icon: Wallet },
     { label: 'الإعدادات', href: '/dashboard/settings', icon: Settings },
@@ -56,7 +56,6 @@ export function MainLayout({ children }: { children: React.ReactNode }) {
 
   const handleLogout = async () => {
     try {
-      // Clear all client-side caches before logging out
       clearPaginatedCache();
       clearServicesCache();
       await logoutUser();
