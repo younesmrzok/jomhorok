@@ -52,35 +52,34 @@ const XIcon = ({ className }: { className?: string }) => (
 export default function DashboardOverview() {
   const { user, userData, loading: authLoading } = useAuth();
   
-  // تهيئة الحالة من الذاكرة المؤقتة إن وجدت لتسريع العرض
   const cachedOrders = getPaginatedCache('userOrders')?.items || [];
   const [recentOrders, setRecentOrders] = useState<any[]>(cachedOrders.slice(0, 3));
-  const [dataLoading, setDataLoading] = useState(cachedOrders.length === 0);
+  const [dataLoading, setDataLoading] = useState(true);
 
   useEffect(() => {
-    if (authLoading || !user) {
-      if (!authLoading && !user) setDataLoading(false);
+    if (authLoading) return;
+
+    if (!user) {
+      setDataLoading(false);
       return;
     }
 
-    // صمام أمان لضمان إيقاف أيقونة التحميل حتى لو تأخرت استجابة قاعدة البيانات (مثل ما هو موجود في صفحة الطلبات)
+    // Safety fallback to stop loader if Firestore is extremely slow on fresh land
     const safetyTimeout = setTimeout(() => {
       setDataLoading(false);
-    }, 4000);
+    }, 8000);
 
-    // مزامنة حالة الطلبات في الخلفية
+    // Run sync in background
     syncUserOrdersStatus(user.uid).catch(() => {});
 
-    // بدء البث الحي للبيانات بشكل مباشر وفوري
+    // Listen for orders with enhanced reliability
     const unsubscribe = getUserOrdersStream(user.uid, (data) => {
-      if (data && Array.isArray(data)) {
-        // تحديث الذاكرة المؤقتة العامة لضمان التزامن بين كافة صفحات الموقع
+      if (data !== null) {
         updatePaginatedCache('userOrders', { items: data, lastVisible: null, hasMore: false });
-        
-        // عرض آخر 3 طلبات فقط في الواجهة الرئيسية
         setRecentOrders(data.slice(0, 3));
       }
-      // إيقاف التحميل فور وصول أي استجابة (حتى لو كانت قائمة فارغة)
+      
+      // Stop loading once we get the first snapshot (even if empty)
       setDataLoading(false);
       clearTimeout(safetyTimeout);
     });
@@ -219,6 +218,9 @@ export default function DashboardOverview() {
                 
                 let displayStatus = order.status;
                 if (displayStatus === 'قيد المراجعة' || displayStatus === 'Pending' || displayStatus === 'Processing') displayStatus = 'قيد المعالجة';
+                if (displayStatus === 'In progress' || displayStatus === 'In Progress') displayStatus = 'قيد التنفيذ';
+                if (displayStatus === 'Completed' || displayStatus === 'Partial') displayStatus = 'مكتمل';
+                if (displayStatus === 'Canceled' || displayStatus === 'Cancelled' || displayStatus === 'Refunded') displayStatus = 'ملغي';
 
                 return (
                   <div key={order.id || idx} className="bg-white p-5 rounded-[2.5rem] border border-gray-50 shadow-sm flex flex-col gap-4 relative overflow-hidden">

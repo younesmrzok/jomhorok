@@ -81,7 +81,6 @@ export const getUserData = async (uid: string) => {
  * Update Profile Data (Non-financial - Safe for Client)
  */
 export const updateUserData = async (uid: string, data: any) => {
-  // Prevent sensitive field updates from client if called accidentally
   const { balance, isAdmin, ...safeData } = data;
   return updateDoc(doc(db, "users", uid), safeData);
 };
@@ -128,13 +127,26 @@ export const createTicket = async (uid: string, data: any) => {
 /**
  * Real-time user orders stream (Safe for Client)
  */
-export const getUserOrdersStream = (uid: string, callback: (data: any[]) => void) => {
+export const getUserOrdersStream = (uid: string, callback: (data: any[] | null) => void) => {
   if (!uid) return null;
-  const q = query(collection(db, "orders"), where("userId", "==", uid), orderBy("createdAt", "desc"));
-  return onSnapshot(q, (snap) => {
-    callback(snap.docs.map(doc => ({ id: doc.id, ...doc.data() })));
-  }, (error) => {
-    console.error("Orders Stream Error:", error);
-    // Don't clear local data on error to prevent flickering
-  });
+  
+  try {
+    const q = query(
+      collection(db, "orders"), 
+      where("userId", "==", uid), 
+      orderBy("createdAt", "desc")
+    );
+    
+    return onSnapshot(q, (snap) => {
+      const orders = snap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+      callback(orders);
+    }, (error) => {
+      console.error("Orders Stream Error:", error);
+      callback(null); // Signal that something went wrong
+    });
+  } catch (e) {
+    console.error("Stream setup error:", e);
+    callback(null);
+    return null;
+  }
 };

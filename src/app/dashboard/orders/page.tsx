@@ -53,16 +53,15 @@ export default function OrdersPage() {
       return;
     }
 
-    // Safety timeout to ensure loading spinner doesn't stay forever
     const safetyTimeout = setTimeout(() => {
       setLoading(false);
-    }, 4000);
+    }, 8000);
 
-    // Attempt to sync
+    // Sync statuses
     syncUserOrdersStatus(user.uid).catch(console.error);
 
     const unsubscribe = getUserOrdersStream(user.uid, (data) => {
-      if (data) {
+      if (data !== null) {
         setOrders(data);
         updatePaginatedCache('userOrders', { items: data, lastVisible: null, hasMore: false });
       }
