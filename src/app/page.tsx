@@ -220,11 +220,11 @@ export default function LandingPage() {
 
           <section className="text-center px-6 mt-5 space-y-4">
             <h1 className="text-3xl md:text-4xl font-black text-slate-900 leading-[1.35] tracking-tight">
-              جميع خدمات مواقع
+              جميع خدمات <span className="text-orange-500">مواقع</span>
               <br />
-              <span className="text-orange-500">التواصل الاجتماعي</span> <span className="inline-block">في</span>
+              <span className="text-orange-500">التواصل الاجتماعي</span>
               <br />
-              <span className="inline-block">مكان واحد</span>
+              في مكان واحد
             </h1>
 
             <p className="text-[13px] text-slate-500/90 leading-relaxed font-black px-4 max-w-sm mx-auto">
@@ -273,7 +273,7 @@ export default function LandingPage() {
                     </div>
                     <svg className="flex-1 w-full text-indigo-400" viewBox="0 0 100 40">
                       <defs>
-                        <linearGradient id="chartGradient" x1="0" x1="0" x2="0" y2="1">
+                        <linearGradient id="chartGradient" x1="0" x1="0" x2="0" x2="1">
                           <stop offset="0%" stopColor="rgb(99, 102, 241)" stopOpacity="0.2"/>
                           <stop offset="100%" stopColor="rgb(99, 102, 241)" stopOpacity="0"/>
                         </linearGradient>
@@ -339,7 +339,9 @@ export default function LandingPage() {
             </Link>
           </section>
 
-          <section className="px-5 mt-6 mb-8">
+          <div className="h-px bg-gray-200 w-full mt-6" />
+
+          <section className="px-5 mt-8 mb-8">
             <div className="bg-white border border-slate-50 p-5 rounded-3xl shadow-xs grid grid-cols-3 gap-2">
               <div className="text-center flex flex-col items-center justify-center">
                 <Zap className="w-5 h-5 text-orange-500 mb-1" />
@@ -358,6 +360,8 @@ export default function LandingPage() {
               </div>
             </div>
           </section>
+
+          <div className="h-px bg-gray-200 w-full" />
 
           <section className="px-5 space-y-6 py-10">
             <div className="text-center space-y-1">
@@ -388,6 +392,8 @@ export default function LandingPage() {
             </div>
           </section>
 
+          <div className="h-px bg-gray-200 w-full" />
+
           <section className="px-5 space-y-6 py-10">
             <div className="text-center space-y-1">
               <div className="inline-flex items-center justify-center w-10 h-10 rounded-2xl bg-orange-50 text-orange-500 mb-2">
@@ -413,6 +419,8 @@ export default function LandingPage() {
               })}
             </div>
           </section>
+
+          <div className="h-px bg-gray-200 w-full" />
 
           <section className="px-5 space-y-8 py-12 bg-gray-50/30">
             <div className="text-center space-y-1">
