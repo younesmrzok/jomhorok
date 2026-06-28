@@ -112,8 +112,8 @@ export default function DashboardOverview() {
       <div className="space-y-8">
         <div className="text-center space-y-3.5 select-none">
           <div className="flex items-center justify-center gap-3.5 mb-1">
-            <div className="p-2 bg-orange-50 rounded-xl">
-               <Grid className="h-6 w-6 text-orange-500" />
+            <div className="p-2 bg-orange-50 rounded-xl -mt-1">
+               <Grid className="h-7 w-7 text-orange-500" />
             </div>
             <h2 className="text-2xl font-black text-gray-900 tracking-tight">الخدمات</h2>
           </div>
