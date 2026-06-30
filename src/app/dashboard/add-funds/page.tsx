@@ -1,8 +1,8 @@
+
 "use client";
 
 import { useState, useEffect, useCallback } from 'react';
 import { Card } from '@/components/ui/card';
-import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Button } from '@/components/ui/button';
 import { 
@@ -31,7 +31,7 @@ import Image from 'next/image';
 import { cn } from '@/lib/utils';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useToast } from "@/hooks/use-toast";
-import { createShippingRequest, getPaginatedDocs } from '@/firebase/db-service';
+import { createShippingRequest, getPaginatedDocs, getUserShippingsStream } from '@/firebase/db-service';
 import { useAuth } from '@/firebase/hooks';
 import { where } from 'firebase/firestore';
 import { updatePaginatedCache, getPaginatedCache } from '@/lib/pagination-store';
@@ -50,7 +50,7 @@ export default function AddFundsPage() {
   const [senderAccount, setSenderAccount] = useState('');
   const [voucherCode, setVoucherCode] = useState('');
   const [loading, setLoading] = useState(false);
-  const [historyLoading, setHistoryLoading] = useState(false);
+  const [historyLoading, setHistoryLoading] = useState(true);
   const [copiedId, setCopiedId] = useState<string | null>(null);
   
   const [shippingsState, setShippingsState] = useState<PaginatedState>(getPaginatedCache('userShippings'));
@@ -61,40 +61,29 @@ export default function AddFundsPage() {
     setMounted(true);
   }, []);
 
-  const loadHistory = useCallback(async (isInitial = false) => {
-    if (!user) return;
-    
-    setHistoryLoading(true);
-    try {
-      const cursor = isInitial ? null : shippingsState.lastVisible;
-      const result = await getPaginatedDocs('shippings', 10, cursor, [where('userId', '==', user.uid)], "createdAt");
-      
-      setShippingsState((prev: PaginatedState) => {
-        const currentItems = isInitial ? [] : prev.items;
-        const newItems = [...currentItems, ...result.docs];
-        const uniqueItems = Array.from(new Map(newItems.map(item => [item.id || Math.random().toString(), item])).values());
-        const sortedItems = uniqueItems.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
-        
-        const newState = {
-          items: sortedItems,
-          lastVisible: result.lastVisible,
-          hasMore: result.hasMore
-        };
-        updatePaginatedCache('userShippings', newState);
-        return newState;
-      });
-    } catch (e) {
-      console.error(e);
-    } finally {
-      setHistoryLoading(false);
-    }
-  }, [user, shippingsState.lastVisible]);
+  // Real-time listener for shipping requests to catch status changes immediately
+  useEffect(() => {
+    if (!user || !mounted) return;
 
-  const handleTabChange = (val: string) => {
-    if (val === 'history' && shippingsState.items.length === 0 && !historyLoading) {
-      loadHistory(true);
-    }
-  };
+    const unsubscribe = getUserShippingsStream(user.uid, (data) => {
+      if (data) {
+        setShippingsState(prev => {
+          const newState = {
+            ...prev,
+            items: data,
+            hasMore: data.length >= 20 // Using 20 as default stream limit
+          };
+          updatePaginatedCache('userShippings', newState);
+          return newState;
+        });
+      }
+      setHistoryLoading(false);
+    });
+
+    return () => {
+      if (unsubscribe) unsubscribe();
+    };
+  }, [user, mounted]);
 
   const bankMethods = [
     { id: 'attijari', name: 'التجاري وفا بنك', logo: 'AWB', image: '/attijari.jpg', color: 'text-amber-600', bg: 'bg-white', border: 'border-amber-200', account: '007590000817230040234264', holder: 'Younes', isAvailable: true },
@@ -144,14 +133,7 @@ export default function AddFundsPage() {
         createdAt: new Date().toISOString()
       };
       
-      const newDocId = await createShippingRequest(user.uid, shippingData);
-      const dataWithId = { ...shippingData, id: newDocId };
-
-      setShippingsState((prev: PaginatedState) => {
-        const newState = { ...prev, items: [dataWithId, ...prev.items] };
-        updatePaginatedCache('userShippings', newState);
-        return newState;
-      });
+      await createShippingRequest(user.uid, shippingData);
       toast({ variant: "success", title: "تم إرسال الطلب للمراجعة" });
       setAmount(''); setSenderName(''); setSenderAccount(''); setMethod(null);
     } catch (error) { 
@@ -180,14 +162,7 @@ export default function AddFundsPage() {
         createdAt: new Date().toISOString()
       };
       
-      const newDocId = await createShippingRequest(user.uid, shippingData);
-      const dataWithId = { ...shippingData, id: newDocId };
-
-      setShippingsState((prev: PaginatedState) => {
-        const newState = { ...prev, items: [dataWithId, ...prev.items] };
-        updatePaginatedCache('userShippings', newState);
-        return newState;
-      });
+      await createShippingRequest(user.uid, shippingData);
       toast({ variant: "success", title: "تم إرسال الرمز للمراجعة" });
       setAmount(''); setVoucherCode(''); setMethod(null);
     } catch (error) { 
@@ -231,7 +206,7 @@ export default function AddFundsPage() {
            </div>
         </div>
 
-        <Tabs defaultValue="bank" onValueChange={handleTabChange} className="w-full" dir="rtl">
+        <Tabs defaultValue="bank" activationMode="manual" className="w-full" dir="rtl">
           <div className="w-full px-1 overflow-x-auto scrollbar-hide flex items-center justify-start gap-2 py-2">
             <TabsList className="bg-transparent h-auto p-0 flex items-center gap-2 border-none">
               <TabsTrigger value="bank" className="rounded-xl h-10 px-6 font-black text-xs flex items-center gap-2 border transition-all outline-none data-[state=active]:bg-orange-500 data-[state=active]:text-white bg-white text-gray-500 border-gray-100 flex-row-reverse shadow-none hover:bg-orange-50/50 hover:text-orange-500 data-[state=active]:hover:bg-orange-500 data-[state=active]:hover:text-white"><span>تحويل بنكي</span><Building2 className="h-4 w-4" /></TabsTrigger>
@@ -433,7 +408,7 @@ export default function AddFundsPage() {
               ) : shippingsState.items.length > 0 ? (
                 <>
                   {shippingsState.items.map((item: any, idx: number) => (
-                    <div key={idx} className="bg-white p-5 rounded-[2.2rem] border border-gray-50 shadow-sm flex flex-col gap-4">
+                    <div key={item.id || idx} className="bg-white p-5 rounded-[2.2rem] border border-gray-50 shadow-sm flex flex-col gap-4">
                       <div className="flex items-center justify-between">
                         <div className="flex items-center gap-3">
                           <div className="w-10 h-10 rounded-xl bg-gray-50 flex items-center justify-center text-gray-400">{item.type === 'bank' ? <Building2 className="h-5 w-5" /> : <Smartphone className="h-5 w-5" />}</div>
@@ -463,16 +438,6 @@ export default function AddFundsPage() {
                       </div>
                     </div>
                   ))}
-                  {shippingsState.hasMore && shippingsState.items.length >= 10 && (
-                    <button 
-                      onClick={() => loadHistory()} 
-                      disabled={historyLoading} 
-                      className="w-full max-w-[280px] mx-auto py-5 bg-white rounded-[2rem] border border-orange-100 text-orange-500 font-black text-xs flex items-center justify-center gap-2 transition-all outline-none active:scale-[0.98]"
-                    >
-                      {historyLoading ? <Loader2 className="animate-spin h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
-                      <span>عرض المزيد</span>
-                    </button>
-                  )}
                 </>
               ) : (
                 <div className="py-20 text-center flex flex-col items-center gap-3">

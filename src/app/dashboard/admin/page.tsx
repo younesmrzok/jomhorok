@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useState, useEffect, useCallback } from 'react';
@@ -301,7 +302,7 @@ export default function AdminDashboard() {
           </div>
         </div>
 
-        <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full" dir="rtl">
+        <Tabs value={activeTab} onValueChange={setActiveTab} activationMode="manual" className="w-full" dir="rtl">
           <div className="w-full overflow-x-auto scrollbar-hide flex items-center justify-start gap-2 py-2">
             <TabsList className="bg-transparent h-auto p-0 flex items-center gap-2 border-none">
               <TabsTrigger value="users" className="rounded-xl h-10 px-6 font-black text-xs shrink-0 flex items-center gap-2 border transition-all outline-none data-[state=active]:bg-slate-900 data-[state=active]:text-white bg-white text-gray-600 border-gray-100 shadow-none flex-row-reverse hover:bg-slate-50 hover:text-slate-900 data-[state=active]:hover:bg-slate-900 data-[state=active]:hover:text-white">

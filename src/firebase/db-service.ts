@@ -132,37 +132,62 @@ export const getUserOrdersStream = (uid: string, callback: (data: any[] | null) 
   if (!uid) return null;
   
   try {
-    // We use a simple query first to avoid immediate index requirement failures
     const q = query(
       collection(db, "orders"), 
       where("userId", "==", uid), 
-      orderBy("createdAt", "desc")
+      orderBy("createdAt", "desc"),
+      limit(50)
     );
     
     return onSnapshot(q, (snap) => {
       const orders = snap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
       callback(orders);
     }, (error) => {
-      console.error("Orders Stream Error (possibly missing index):", error);
-      
-      // Fallback to non-ordered stream if ordered fails
-      const fallbackQuery = query(
-        collection(db, "orders"),
-        where("userId", "==", uid)
-      );
-      
+      console.error("Orders Stream Error:", error);
+      const fallbackQuery = query(collection(db, "orders"), where("userId", "==", uid), limit(50));
       return onSnapshot(fallbackQuery, (fallbackSnap) => {
         const fallbackOrders = fallbackSnap.docs
           .map(doc => ({ id: doc.id, ...doc.data() }))
           .sort((a: any, b: any) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
         callback(fallbackOrders);
-      }, (fallbackError) => {
-        console.error("Fallback Stream Error:", fallbackError);
-        callback(null);
       });
     });
   } catch (e) {
     console.error("Stream setup error:", e);
+    callback(null);
+    return null;
+  }
+};
+
+/**
+ * Real-time user shippings stream (Safe for Client)
+ */
+export const getUserShippingsStream = (uid: string, callback: (data: any[] | null) => void) => {
+  if (!uid) return null;
+  
+  try {
+    const q = query(
+      collection(db, "shippings"), 
+      where("userId", "==", uid), 
+      orderBy("createdAt", "desc"),
+      limit(20)
+    );
+    
+    return onSnapshot(q, (snap) => {
+      const docs = snap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+      callback(docs);
+    }, (error) => {
+      console.error("Shippings Stream Error:", error);
+      const fallbackQuery = query(collection(db, "shippings"), where("userId", "==", uid), limit(20));
+      return onSnapshot(fallbackQuery, (fallbackSnap) => {
+        const fallbackDocs = fallbackSnap.docs
+          .map(doc => ({ id: doc.id, ...doc.data() }))
+          .sort((a: any, b: any) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+        callback(fallbackDocs);
+      });
+    });
+  } catch (e) {
+    console.error("Shippings Stream setup error:", e);
     callback(null);
     return null;
   }
