@@ -185,7 +185,7 @@ function OrderInterface() {
       return;
     }
 
-    if (!quantity || isNaN(q) || q < service.min) {
+    if (!quantity || iNaN(q) || q < service.min) {
       toast({ variant: "destructive", title: "كمية غير كافية", description: `الحد الأدنى لهذه الخدمة هو ${service.min}` });
       return;
     }
@@ -299,20 +299,20 @@ function OrderInterface() {
           />
         </div>
 
-        <div className="bg-orange-50/50 border border-orange-100 p-5 rounded-[2rem] space-y-3">
+        <div className="bg-orange-50/50 border border-orange-100 p-4 rounded-[1.8rem] space-y-2">
           <div className="flex items-center gap-2 text-orange-600">
-            <Info className="h-4 w-4" />
-            <span className="text-xs font-black uppercase">تنويه مهم</span>
+            <Info className="h-3.5 w-3.5" />
+            <span className="text-[10px] font-black uppercase">تنويه مهم</span>
           </div>
-          <ul className="space-y-2.5">
+          <ul className="space-y-1.5">
             {[
-              "في خانة الرابط، أدخل رابط الحساب أو المنشور بشكل صحيح.",
-              "لا ترسل أكثر من طلب لنفس الرابط حتى يكتمل الطلب الأول، لتجنب تداخل الطلبات.",
-              "تجنب إرسال كميات صغيرة جداً، لأنها قد تؤدي إلى تأخر معالجة الطلب."
+              "أدخل رابط الحساب أو المنشور بشكل صحيح.",
+              "لا ترسل أكثر من طلب لنفس الرابط حتى يكتمل الطلب الأول.",
+              "تجنب إرسال كميات صغيرة جداً لتفادي التأخر."
             ].map((text, i) => (
               <li key={i} className="flex items-start gap-2">
                 <div className="w-1 h-1 rounded-full bg-orange-300 mt-1.5 shrink-0" />
-                <p className="text-11px] font-bold text-orange-800/80 leading-relaxed">{text}</p>
+                <p className="text-[10px] font-bold text-orange-800/80 leading-relaxed">{text}</p>
               </li>
             ))}
           </ul>
@@ -401,7 +401,7 @@ function OrderInterface() {
         <Button 
           onClick={handleConfirmOrder} 
           disabled={loading} 
-          className="w-full max-w-[340px] mx-auto h-16 rounded-[1.8rem] orange-gradient text-white text-lg font-black shadow-xl shadow-orange-500/30 gap-3 border-none outline-none active:scale-95 transition-all flex items-center justify-center"
+          className="w-full max-w-[280px] mx-auto h-16 rounded-[1.8rem] orange-gradient text-white text-lg font-black shadow-xl shadow-orange-500/30 gap-3 border-none outline-none active:scale-95 transition-all flex items-center justify-center"
         >
           {loading ? <Loader2 className="h-6 w-6 animate-spin" /> : <Send className="h-6 w-6" />}
           تأكيد وإرسال الطلب

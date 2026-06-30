@@ -61,6 +61,8 @@ export default function AddFundsPage() {
     if (!user || !mounted) return;
 
     setHistoryLoading(true);
+    
+    // Primary query with ordering
     const q = query(
       collection(db, 'shippings'),
       where('userId', '==', user.uid),
@@ -81,7 +83,26 @@ export default function AddFundsPage() {
       setHistoryLoading(false);
     }, (error) => {
       console.error("Shippings Stream Error:", error);
-      setHistoryLoading(false);
+      // Fallback query if ordering fails (index building)
+      const fallbackQ = query(
+        collection(db, 'shippings'),
+        where('userId', '==', user.uid),
+        limit(displayLimit + 1)
+      );
+      onSnapshot(fallbackQ, (fSnap) => {
+        const fDocs = fSnap.docs
+          .map(doc => ({ id: doc.id, ...doc.data() }))
+          .sort((a: any, b: any) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+        
+        if (fDocs.length > displayLimit) {
+          setShippings(fDocs.slice(0, displayLimit));
+          setHasMore(true);
+        } else {
+          setShippings(fDocs);
+          setHasMore(false);
+        }
+        setHistoryLoading(false);
+      });
     });
 
     return () => unsubscribe();
