@@ -48,7 +48,7 @@ export default function DashboardOverview() {
   const { authLoading, userData } = useAuth();
 
   const formatBalance = (val: number) => {
-    return Number(val || 0).toFixed(2);
+    return Math.abs(Number(val || 0)).toFixed(2);
   };
 
   const balances = [

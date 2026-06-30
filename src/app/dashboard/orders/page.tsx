@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useState, useEffect, useMemo } from 'react';
@@ -15,14 +16,13 @@ import {
   AlertCircle,
   XCircle,
   Ghost,
-  Globe,
-  ChevronDown
+  Globe
 } from 'lucide-react';
 import Link from 'next/link';
 import { cn } from '@/lib/utils';
 import { useAuth } from '@/firebase/hooks';
 import { db } from '@/firebase/config';
-import { collection, query, where, orderBy, limit, onSnapshot } from 'firebase/firestore';
+import { collection, query, where, orderBy, onSnapshot } from 'firebase/firestore';
 import { syncUserOrdersStatus } from '@/firebase/finance-service';
 
 const TikTokIcon = ({ className }: { className?: string }) => (
@@ -41,8 +41,6 @@ export default function OrdersPage() {
   const [mounted, setMounted] = useState(false);
   const [activeTab, setActiveTab] = useState<'all' | 'pending_processing' | 'processing' | 'completed' | 'canceled'>('all');
   const [orders, setOrders] = useState<any[]>([]);
-  const [displayLimit, setDisplayLimit] = useState(10);
-  const [hasMore, setHasMore] = useState(false);
   const [loading, setLoading] = useState(true);
   const { user } = useAuth();
 
@@ -58,45 +56,29 @@ export default function OrdersPage() {
     const q = query(
       collection(db, 'orders'),
       where('userId', '==', user.uid),
-      orderBy('createdAt', 'desc'),
-      limit(displayLimit + 1)
+      orderBy('createdAt', 'desc')
     );
 
     const unsubscribe = onSnapshot(q, (snap) => {
       const allDocs = snap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-      
-      if (allDocs.length > displayLimit) {
-        setOrders(allDocs.slice(0, displayLimit));
-        setHasMore(true);
-      } else {
-        setOrders(allDocs);
-        setHasMore(false);
-      }
+      setOrders(allDocs);
       setLoading(false);
     }, (error) => {
       console.error("Orders Stream Error:", error);
       const fallbackQ = query(
         collection(db, 'orders'),
-        where('userId', '==', user.uid),
-        limit(displayLimit + 1)
+        where('userId', '==', user.uid)
       );
       onSnapshot(fallbackQ, (fSnap) => {
         const fDocs = fSnap.docs.map(doc => ({ id: doc.id, ...doc.data() }))
           .sort((a: any, b: any) => new Date(b.createdAt || 0).getTime() - new Date(a.createdAt || 0).getTime());
-        
-        if (fDocs.length > displayLimit) {
-          setOrders(fDocs.slice(0, displayLimit));
-          setHasMore(true);
-        } else {
-          setOrders(fDocs);
-          setHasMore(false);
-        }
+        setOrders(fDocs);
         setLoading(false);
       });
     });
 
     return () => unsubscribe();
-  }, [user, mounted, displayLimit]);
+  }, [user, mounted]);
 
   const filteredOrders = useMemo(() => {
     return orders.filter((order: any) => {
@@ -172,71 +154,56 @@ export default function OrdersPage() {
         </div>
 
         <div className="space-y-4 pt-4">
-          {loading && orders.length === 0 ? (
+          {loading ? (
             <div className="py-20 flex justify-center"><Loader2 className="h-10 w-10 animate-spin text-orange-500" /></div>
           ) : filteredOrders.length > 0 ? (
-            <>
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                {filteredOrders.map((order, idx) => {
-                  const platformInfo = getPlatformIcon(order.platform || order.title);
-                  const Icon = platformInfo.icon;
-                  
-                  let displayStatus = order.status;
-                  if (displayStatus === 'قيد المراجعة' || displayStatus === 'Pending' || displayStatus === 'Processing') displayStatus = 'قيد المعالجة';
-                  if (displayStatus === 'In progress' || displayStatus === 'In Progress') displayStatus = 'قيد التنفيذ';
-                  if (displayStatus === 'Completed' || displayStatus === 'Partial') displayStatus = 'مكتمل';
-                  if (displayStatus === 'Canceled' || displayStatus === 'Cancelled' || displayStatus === 'Refunded') displayStatus = 'ملغي';
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+              {filteredOrders.map((order, idx) => {
+                const platformInfo = getPlatformIcon(order.platform || order.title);
+                const Icon = platformInfo.icon;
+                
+                let displayStatus = order.status;
+                if (displayStatus === 'قيد المراجعة' || displayStatus === 'Pending' || displayStatus === 'Processing') displayStatus = 'قيد المعالجة';
+                if (displayStatus === 'In progress' || displayStatus === 'In Progress') displayStatus = 'قيد التنفيذ';
+                if (displayStatus === 'Completed' || displayStatus === 'Partial') displayStatus = 'مكتمل';
+                if (displayStatus === 'Canceled' || displayStatus === 'Cancelled' || displayStatus === 'Refunded') displayStatus = 'ملغي';
 
-                  return (
-                    <div key={order.id || idx} className="bg-white p-5 lg:p-6 rounded-[2.5rem] border border-gray-50 shadow-sm flex flex-col gap-4 relative overflow-hidden transition-all hover:shadow-md">
-                      <div className="flex items-center justify-between">
-                        <div className="flex items-center gap-3">
-                          <div className={cn("w-10 h-10 rounded-xl flex items-center justify-center shadow-sm", platformInfo.bg)}><Icon className={cn("h-5 w-5", platformInfo.color)} /></div>
-                          <div className="flex flex-col text-right"><span className="text-[12px] font-black text-gray-900 leading-none">ID: #{order.apiOrderId || '...'}</span><span className="text-[9px] font-bold text-gray-300 mt-1">{order.createdAt ? new Date(order.createdAt).toLocaleDateString('ar-MA') : 'جاري...'}</span></div>
-                        </div>
-                        <div className={cn(
-                          "px-3 py-1.5 rounded-full text-[9px] font-black uppercase tracking-widest", 
-                          displayStatus === 'مكتمل' ? "bg-green-50 text-green-600" : 
-                          displayStatus === 'قيد التنفيذ' ? "bg-blue-50 text-blue-600" : 
-                          displayStatus === 'قيد المعالجة' ? "bg-slate-50 text-slate-600" :
-                          displayStatus === 'ملغي' ? "bg-red-50 text-red-600" :
-                          "bg-orange-50 text-orange-600"
-                        )}>
-                          {displayStatus}
-                        </div>
+                return (
+                  <div key={order.id || idx} className="bg-white p-5 lg:p-6 rounded-[2.5rem] border border-gray-50 shadow-sm flex flex-col gap-4 relative overflow-hidden transition-all hover:shadow-md">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-3">
+                        <div className={cn("w-10 h-10 rounded-xl flex items-center justify-center shadow-sm", platformInfo.bg)}><Icon className={cn("h-5 w-5", platformInfo.color)} /></div>
+                        <div className="flex flex-col text-right"><span className="text-[12px] font-black text-gray-900 leading-none">ID: #{order.apiOrderId || '...'}</span><span className="text-[9px] font-bold text-gray-300 mt-1">{order.createdAt ? new Date(order.createdAt).toLocaleDateString('ar-MA') : 'جاري...'}</span></div>
                       </div>
-                      <h4 className="text-[12px] font-black text-gray-800 leading-tight pr-1 line-clamp-1">{order.title}</h4>
-                      <div className="flex items-center justify-between pt-2 border-t border-gray-50">
-                        <div className="flex gap-6">
-                          <div className="flex flex-col">
-                            <span className="text-[9px] font-bold text-gray-400 uppercase tracking-tight">الكمية</span>
-                            <span className="text-sm font-black text-gray-700">{order.quantity?.toLocaleString() || '...'}</span>
-                          </div>
-                          <div className="flex flex-col">
-                            <span className="text-[9px] font-bold text-gray-400 uppercase tracking-tight">المبلغ</span>
-                            <span className="text-sm font-black text-green-600">${order.price?.toFixed(2) || '0.00'}</span>
-                          </div>
-                        </div>
-                        <a href={order.link?.startsWith('http') ? order.link : `https://${order.link}`} target="_blank" rel="noopener noreferrer" className="flex items-center gap-1.5 text-orange-500 font-black text-[10px] px-3 py-2 hover:bg-orange-50 rounded-xl transition-all">انتقال للرابط <ArrowUpRight className="h-3 w-3" /></a>
+                      <div className={cn(
+                        "px-3 py-1.5 rounded-full text-[9px] font-black uppercase tracking-widest", 
+                        displayStatus === 'مكتمل' ? "bg-green-50 text-green-600" : 
+                        displayStatus === 'قيد التنفيذ' ? "bg-blue-50 text-blue-600" : 
+                        displayStatus === 'قيد المعالجة' ? "bg-slate-50 text-slate-600" :
+                        displayStatus === 'ملغي' ? "bg-red-50 text-red-600" :
+                        "bg-orange-50 text-orange-600"
+                      )}>
+                        {displayStatus}
                       </div>
                     </div>
-                  );
-                })}
-              </div>
-              
-              {hasMore && orders.length >= 10 && (
-                <div className="pt-8 flex justify-center">
-                  <button 
-                    onClick={() => setDisplayLimit(prev => prev + 10)} 
-                    disabled={loading} 
-                    className="w-full max-w-[280px] py-5 bg-white rounded-[2rem] border border-orange-100 text-orange-500 font-black text-xs flex items-center justify-center gap-2 transition-all outline-none active:scale-[0.98] hover:bg-orange-50 shadow-sm"
-                  >
-                    {loading ? <Loader2 className="animate-spin h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
-                    <span>عرض المزيد</span>
-                  </button>
-                </div>
-              )}
-            </>
+                    <h4 className="text-[12px] font-black text-gray-800 leading-tight pr-1 line-clamp-1">{order.title}</h4>
+                    <div className="flex items-center justify-between pt-2 border-t border-gray-50">
+                      <div className="flex gap-6">
+                        <div className="flex flex-col">
+                          <span className="text-[9px] font-bold text-gray-400 uppercase tracking-tight">الكمية</span>
+                          <span className="text-sm font-black text-gray-700">{order.quantity?.toLocaleString() || '...'}</span>
+                        </div>
+                        <div className="flex flex-col">
+                          <span className="text-[9px] font-bold text-gray-400 uppercase tracking-tight">المبلغ</span>
+                          <span className="text-sm font-black text-green-600">${order.price?.toFixed(2) || '0.00'}</span>
+                        </div>
+                      </div>
+                      <a href={order.link?.startsWith('http') ? order.link : `https://${order.link}`} target="_blank" rel="noopener noreferrer" className="flex items-center gap-1.5 text-orange-500 font-black text-[10px] px-3 py-2 hover:bg-orange-50 rounded-xl transition-all">انتقال للرابط <ArrowUpRight className="h-3 w-3" /></a>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
           ) : (
             <div className="py-20 text-center space-y-3">
               <Clock className="h-10 w-10 text-gray-200 mx-auto" />

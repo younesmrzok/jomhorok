@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useState, useEffect } from 'react';
@@ -14,7 +15,6 @@ import {
   Hash,
   Coins,
   Ticket,
-  ChevronDown,
   CheckCircle2,
   XCircle,
   Clock,
@@ -33,7 +33,7 @@ import { useToast } from "@/hooks/use-toast";
 import { createShippingRequest } from '@/firebase/db-service';
 import { useAuth } from '@/firebase/hooks';
 import { db } from '@/firebase/config';
-import { collection, query, where, orderBy, limit, onSnapshot } from 'firebase/firestore';
+import { collection, query, where, orderBy, onSnapshot } from 'firebase/firestore';
 
 export default function AddFundsPage() {
   const [mounted, setMounted] = useState(false);
@@ -47,8 +47,6 @@ export default function AddFundsPage() {
   const [copiedId, setCopiedId] = useState<string | null>(null);
   
   const [shippings, setShippings] = useState<any[]>([]);
-  const [displayLimit, setDisplayLimit] = useState(10);
-  const [hasMore, setHasMore] = useState(false);
 
   const { toast } = useToast();
   const { user, userData } = useAuth();
@@ -65,46 +63,30 @@ export default function AddFundsPage() {
     const q = query(
       collection(db, 'shippings'),
       where('userId', '==', user.uid),
-      orderBy('createdAt', 'desc'),
-      limit(displayLimit + 1)
+      orderBy('createdAt', 'desc')
     );
 
     const unsubscribe = onSnapshot(q, (snap) => {
       const allDocs = snap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-      
-      if (allDocs.length > displayLimit) {
-        setShippings(allDocs.slice(0, displayLimit));
-        setHasMore(true);
-      } else {
-        setShippings(allDocs);
-        setHasMore(false);
-      }
+      setShippings(allDocs);
       setHistoryLoading(false);
     }, (error) => {
       console.error("Shippings Stream Error:", error);
       const fallbackQ = query(
         collection(db, 'shippings'),
-        where('userId', '==', user.uid),
-        limit(displayLimit + 1)
+        where('userId', '==', user.uid)
       );
       onSnapshot(fallbackQ, (fSnap) => {
         const fDocs = fSnap.docs
           .map(doc => ({ id: doc.id, ...doc.data() }))
           .sort((a: any, b: any) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
-        
-        if (fDocs.length > displayLimit) {
-          setShippings(fDocs.slice(0, displayLimit));
-          setHasMore(true);
-        } else {
-          setShippings(fDocs);
-          setHasMore(false);
-        }
+        setShippings(fDocs);
         setHistoryLoading(false);
       });
     });
 
     return () => unsubscribe();
-  }, [user, mounted, displayLimit]);
+  }, [user, mounted]);
 
   const bankMethods = [
     { id: 'attijari', name: 'التجاري وفا بنك', logo: 'AWB', image: '/attijari.jpg', color: 'text-amber-600', bg: 'bg-white', border: 'border-amber-200', account: '007590000817230040234264', holder: 'Younes', isAvailable: true },
@@ -199,7 +181,7 @@ export default function AddFundsPage() {
   const isVoucherMethod = voucherMethods.some(v => v.id === method);
   const isBankMethod = bankMethods.some(b => b.id === method);
 
-  const formatBalance = (val: number) => {
+  const formatBalanceUI = (val: number) => {
     return val.toFixed(2);
   };
 
@@ -218,7 +200,7 @@ export default function AddFundsPage() {
            <div className="flex flex-col gap-1.5 text-right">
               <span className="text-[10px] font-black text-gray-400 uppercase tracking-widest">رصيدك المتاح:</span>
               <div className="flex items-baseline gap-1">
-                <h2 className="text-4xl font-black text-emerald-600 leading-tight lg:text-5xl">${formatBalance(userData?.balance || 0)}</h2>
+                <h2 className="text-4xl font-black text-emerald-600 leading-tight lg:text-5xl">${formatBalanceUI(userData?.balance || 0)}</h2>
                 <span className="text-xs font-black text-gray-400">USD</span>
               </div>
            </div>
@@ -426,57 +408,42 @@ export default function AddFundsPage() {
 
           <TabsContent value="history" className="space-y-6 mt-6 outline-none">
             <div className="space-y-4">
-              {historyLoading && shippings.length === 0 ? (
+              {historyLoading ? (
                 <div className="py-20 flex justify-center"><Loader2 className="h-10 w-10 animate-spin text-orange-500" /></div>
               ) : shippings.length > 0 ? (
-                <>
-                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                    {shippings.map((item: any, idx: number) => (
-                      <div key={item.id || idx} className="bg-white p-5 lg:p-6 rounded-[2.2rem] border border-gray-50 shadow-sm flex flex-col gap-4 transition-all hover:shadow-md">
-                        <div className="flex items-center justify-between">
-                          <div className="flex items-center gap-3">
-                            <div className="w-10 h-10 rounded-xl bg-gray-50 flex items-center justify-center text-gray-400">{item.type === 'bank' ? <Building2 className="h-5 w-5" /> : <Smartphone className="h-5 w-5" />}</div>
-                            <div className="flex flex-col text-right">
-                              <span className="text-xs font-black text-gray-900">{item.type === 'bank' ? item.bankName : item.company}</span>
-                              <span className="text-[9px] font-bold text-gray-300">{item.createdAt ? new Date(item.createdAt).toLocaleDateString('ar-MA') : 'جاري المعالجة'}</span>
-                            </div>
-                          </div>
-                          <div className={cn(
-                            "px-3 py-1.5 rounded-full text-[9px] font-black uppercase tracking-widest", 
-                            item.status === 'completed' ? "bg-green-50 text-green-600" : 
-                            item.status === 'rejected' ? "bg-red-50 text-red-600" : 
-                            "bg-orange-50 text-orange-600"
-                          )}>
-                            {item.status === 'completed' ? 'مكتمل' : item.status === 'rejected' ? 'مرفوض' : 'قيد الانتظار'}
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                  {shippings.map((item: any, idx: number) => (
+                    <div key={item.id || idx} className="bg-white p-5 lg:p-6 rounded-[2.2rem] border border-gray-50 shadow-sm flex flex-col gap-4 transition-all hover:shadow-md">
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-3">
+                          <div className="w-10 h-10 rounded-xl bg-gray-50 flex items-center justify-center text-gray-400">{item.type === 'bank' ? <Building2 className="h-5 w-5" /> : <Smartphone className="h-5 w-5" />}</div>
+                          <div className="flex flex-col text-right">
+                            <span className="text-xs font-black text-gray-900">{item.type === 'bank' ? item.bankName : item.company}</span>
+                            <span className="text-[9px] font-bold text-gray-300">{item.createdAt ? new Date(item.createdAt).toLocaleDateString('ar-MA') : 'جاري المعالجة'}</span>
                           </div>
                         </div>
-                        <div className="flex items-center justify-between border-t border-gray-50 pt-3">
-                          <div className="flex flex-col">
-                            <span className="text-[9px] font-bold text-gray-400">المبلغ</span>
-                            <span className="text-base font-black text-green-600">{item.amount} درهم</span>
-                          </div>
-                          <div className="flex items-center gap-1.5">
-                            {item.status === 'pending' ? <Clock className="h-3 w-3 text-orange-400" /> : item.status === 'completed' ? <CheckCircle2 className="h-3 w-3 text-green-500" /> : <XCircle className="h-3 w-3 text-red-500" />}
-                            <span className="text-[9px] font-black text-gray-400">{item.status === 'pending' ? 'قيد المراجعة' : item.status === 'completed' ? 'تم الشحن' : 'تم الرفض'}</span>
-                          </div>
+                        <div className={cn(
+                          "px-3 py-1.5 rounded-full text-[9px] font-black uppercase tracking-widest", 
+                          item.status === 'completed' ? "bg-green-50 text-green-600" : 
+                          item.status === 'rejected' ? "bg-red-50 text-red-600" : 
+                          "bg-orange-50 text-orange-600"
+                        )}>
+                          {item.status === 'completed' ? 'مكتمل' : item.status === 'rejected' ? 'مرفوض' : 'قيد الانتظار'}
                         </div>
                       </div>
-                    ))}
-                  </div>
-                  
-                  {hasMore && shippings.length >= 10 && (
-                    <div className="pt-8 flex justify-center">
-                      <button 
-                        onClick={() => setDisplayLimit(prev => prev + 10)} 
-                        disabled={historyLoading}
-                        className="w-full max-w-[280px] mx-auto py-5 bg-white rounded-[2rem] border border-orange-100 text-orange-500 font-black text-xs flex items-center justify-center gap-2 transition-all outline-none active:scale-[0.98] hover:bg-orange-50 shadow-sm"
-                      >
-                        {historyLoading ? <Loader2 className="animate-spin h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
-                        <span>عرض المزيد</span>
-                      </button>
+                      <div className="flex items-center justify-between border-t border-gray-50 pt-3">
+                        <div className="flex flex-col">
+                          <span className="text-[9px] font-bold text-gray-400">المبلغ</span>
+                          <span className="text-base font-black text-green-600">{item.amount} درهم</span>
+                        </div>
+                        <div className="flex items-center gap-1.5">
+                          {item.status === 'pending' ? <Clock className="h-3 w-3 text-orange-400" /> : item.status === 'completed' ? <CheckCircle2 className="h-3 w-3 text-green-500" /> : <XCircle className="h-3 w-3 text-red-500" />}
+                          <span className="text-[9px] font-black text-gray-400">{item.status === 'pending' ? 'قيد المراجعة' : item.status === 'completed' ? 'تم الشحن' : 'تم الرفض'}</span>
+                        </div>
+                      </div>
                     </div>
-                  )}
-                </>
+                  ))}
+                </div>
               ) : (
                 <div className="py-20 text-center flex flex-col items-center gap-3">
                   <Clock className="h-10 w-10 text-gray-200 mx-auto" />
