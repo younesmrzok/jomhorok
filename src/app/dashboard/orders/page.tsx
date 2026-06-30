@@ -68,8 +68,18 @@ export default function OrdersPage() {
       const result = await getPaginatedDocs('orders', 10, cursor, [where('userId', '==', user.uid)], "createdAt");
       
       setOrdersState((prev) => {
+        // دمج البيانات الجديدة مع القديمة
+        const combined = isInitial ? result.docs : [...prev.items, ...result.docs];
+        
+        // فرز صارم: الأحدث دائماً في الأعلى (حسب createdAt تنازلياً)
+        const sorted = [...combined].sort((a: any, b: any) => {
+          const timeA = new Date(a.createdAt).getTime() || 0;
+          const timeB = new Date(b.createdAt).getTime() || 0;
+          return timeB - timeA;
+        });
+
         const newState = {
-          items: isInitial ? result.docs : [...prev.items, ...result.docs],
+          items: sorted,
           lastVisible: result.lastVisible,
           hasMore: result.hasMore
         };
