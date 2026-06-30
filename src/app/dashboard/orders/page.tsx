@@ -53,7 +53,6 @@ export default function OrdersPage() {
   useEffect(() => {
     if (!user || !mounted) return;
 
-    // Trigger background sync but don't let it block the initial load
     syncUserOrdersStatus(user.uid);
 
     const q = query(
@@ -76,7 +75,6 @@ export default function OrdersPage() {
       setLoading(false);
     }, (error) => {
       console.error("Orders Stream Error:", error);
-      // Fallback in case of index issues
       const fallbackQ = query(
         collection(db, 'orders'),
         where('userId', '==', user.uid),

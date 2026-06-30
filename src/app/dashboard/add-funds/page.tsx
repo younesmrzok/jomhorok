@@ -62,7 +62,6 @@ export default function AddFundsPage() {
 
     setHistoryLoading(true);
     
-    // Primary query with ordering
     const q = query(
       collection(db, 'shippings'),
       where('userId', '==', user.uid),
@@ -83,7 +82,6 @@ export default function AddFundsPage() {
       setHistoryLoading(false);
     }, (error) => {
       console.error("Shippings Stream Error:", error);
-      // Fallback query if ordering fails (index building)
       const fallbackQ = query(
         collection(db, 'shippings'),
         where('userId', '==', user.uid),
