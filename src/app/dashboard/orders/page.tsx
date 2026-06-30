@@ -1,7 +1,6 @@
-
 "use client";
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { 
   ArrowRight, 
   Instagram, 
@@ -16,14 +15,16 @@ import {
   AlertCircle,
   XCircle,
   Ghost,
-  Globe
+  Globe,
+  ChevronDown
 } from 'lucide-react';
 import Link from 'next/link';
 import { cn } from '@/lib/utils';
 import { useAuth } from '@/firebase/hooks';
-import { getUserOrdersStream } from '@/firebase/db-service';
+import { getPaginatedDocs } from '@/firebase/db-service';
 import { syncUserOrdersStatus } from '@/firebase/finance-service';
 import { getPaginatedCache, updatePaginatedCache } from '@/lib/pagination-store';
+import { where } from 'firebase/firestore';
 
 const TikTokIcon = ({ className }: { className?: string }) => (
   <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><path d="M9 12a4 4 0 1 0 4 4V4a5 5 0 0 0 5 5" /></svg>
@@ -37,63 +38,63 @@ const ThreadsIcon = ({ className }: { className?: string }) => (
   <svg viewBox="0 0 24 24" fill="currentColor" className={className}><path d="M12 2C6.477 2 2 6.477 2 12s4.477 10 10 10 10-4.477 10-10S17.523 2 12 2zm4.5 13.5c-1.5 1.5-3.5 1.5-4.5 1.5s-3-1-4-2.5c-1-1.5-1-3.5 0-5 1-1.5 3-2.5 4-2.5s3 0 4.5 1.5c1 1 1 3 0 4.5-1 1.5-2.5 2-2.5 2s-1-.5-1-1.5 1.5-2 2-3c.5-1 .5-2 0-2.5-.5-.5-1.5-.5-2 0s-.5 1.5 0 2.5c.5 1 1.5 1 1.5 1z" /></svg>
 );
 
+interface PaginatedState {
+  items: any[];
+  lastVisible: any | null;
+  hasMore: boolean;
+}
+
 export default function OrdersPage() {
   const [mounted, setMounted] = useState(false);
   const [activeTab, setActiveTab] = useState<'all' | 'pending_processing' | 'processing' | 'completed' | 'canceled'>('all');
-  const [orders, setOrders] = useState<any[]>([]);
+  const [ordersState, setOrdersState] = useState<PaginatedState>(getPaginatedCache('userOrders'));
   const [loading, setLoading] = useState(true);
   const { user, loading: authLoading } = useAuth();
 
-  // Initial mount and cache recovery
   useEffect(() => {
     setMounted(true);
-    const cached = getPaginatedCache('userOrders');
-    if (cached && cached.items && cached.items.length > 0) {
-      setOrders(cached.items);
-      setLoading(false);
-    }
   }, []);
 
-  // Robust data fetching and sync
-  useEffect(() => {
-    if (!mounted || authLoading || !user) {
-      if (!authLoading && !user && mounted) setLoading(false);
-      return;
-    }
-
-    // 1. Initial Sync & State Update
-    const performInitialSync = async () => {
-      try {
+  const loadOrders = useCallback(async (isInitial = false) => {
+    if (!user) return;
+    
+    setLoading(true);
+    try {
+      if (isInitial) {
         await syncUserOrdersStatus(user.uid);
-      } catch (e) {
-        console.error("Orders status sync failed:", e);
       }
-    };
-    performInitialSync();
 
-    // 2. Setup Real-time Stream
-    const safetyTimeout = setTimeout(() => {
+      const cursor = isInitial ? null : ordersState.lastVisible;
+      const result = await getPaginatedDocs('orders', 10, cursor, [where('userId', '==', user.uid)], "createdAt");
+      
+      setOrdersState((prev) => {
+        const newItems = isInitial ? result.docs : [...prev.items, ...result.docs];
+        const newState = {
+          items: newItems,
+          lastVisible: result.lastVisible,
+          hasMore: result.hasMore
+        };
+        updatePaginatedCache('userOrders', newState);
+        return newState;
+      });
+    } catch (e) {
+      console.error("Load orders error:", e);
+    } finally {
       setLoading(false);
-    }, 5000);
+    }
+  }, [user, ordersState.lastVisible]);
 
-    const unsubscribe = getUserOrdersStream(user.uid, (data) => {
-      if (data !== null) {
-        setOrders(data);
-        updatePaginatedCache('userOrders', { items: data, lastVisible: null, hasMore: false });
-      }
+  useEffect(() => {
+    if (mounted && user && ordersState.items.length === 0) {
+      loadOrders(true);
+    } else if (mounted && user) {
       setLoading(false);
-      clearTimeout(safetyTimeout);
-    });
-
-    return () => {
-      if (unsubscribe) unsubscribe();
-      clearTimeout(safetyTimeout);
-    };
-  }, [user?.uid, authLoading, mounted]);
+    }
+  }, [mounted, user, loadOrders, ordersState.items.length]);
 
   if (!mounted) return null;
 
-  const filteredOrders = orders.filter((order: any) => {
+  const filteredOrders = ordersState.items.filter((order: any) => {
     const status = order.status;
     if (activeTab === 'all') return true;
     
@@ -163,7 +164,7 @@ export default function OrdersPage() {
         </div>
 
         <div className="space-y-4 pt-4">
-          {loading && orders.length === 0 ? (
+          {loading && ordersState.items.length === 0 ? (
             <div className="py-20 flex justify-center"><Loader2 className="h-10 w-10 animate-spin text-orange-500" /></div>
           ) : filteredOrders.length > 0 ? (
             <>
@@ -212,6 +213,17 @@ export default function OrdersPage() {
                   </div>
                 );
               })}
+              
+              {ordersState.hasMore && ordersState.items.length >= 10 && activeTab === 'all' && (
+                <button 
+                  onClick={() => loadOrders()} 
+                  disabled={loading} 
+                  className="w-full max-w-[280px] mx-auto py-5 bg-white rounded-[2rem] border border-orange-100 text-orange-500 font-black text-xs flex items-center justify-center gap-2 transition-all outline-none active:scale-[0.98]"
+                >
+                  {loading ? <Loader2 className="animate-spin h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
+                  <span>عرض المزيد</span>
+                </button>
+              )}
             </>
           ) : (
             <div className="py-20 text-center space-y-3">

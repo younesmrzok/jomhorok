@@ -67,7 +67,7 @@ export default function AddFundsPage() {
     setHistoryLoading(true);
     try {
       const cursor = isInitial ? null : shippingsState.lastVisible;
-      const result = await getPaginatedDocs('shippings', 10, cursor, [where('userId', '==', user.uid)], null);
+      const result = await getPaginatedDocs('shippings', 10, cursor, [where('userId', '==', user.uid)], "createdAt");
       
       setShippingsState((prev: PaginatedState) => {
         const currentItems = isInitial ? [] : prev.items;
@@ -234,9 +234,9 @@ export default function AddFundsPage() {
         <Tabs defaultValue="bank" onValueChange={handleTabChange} className="w-full" dir="rtl">
           <div className="w-full px-1 overflow-x-auto scrollbar-hide flex items-center justify-start gap-2 py-2">
             <TabsList className="bg-transparent h-auto p-0 flex items-center gap-2 border-none">
-              <TabsTrigger value="bank" className="rounded-xl h-10 px-6 font-black text-xs flex items-center gap-2 border transition-colors outline-none data-[state=active]:bg-orange-500 data-[state=active]:text-white bg-white text-gray-500 border-gray-100 flex-row-reverse shadow-none hover:text-orange-500 data-[state=active]:hover:text-white"><span>تحويل بنكي</span><Building2 className="h-4 w-4" /></TabsTrigger>
-              <TabsTrigger value="voucher" className="rounded-xl h-10 px-6 font-black text-xs flex items-center gap-2 border transition-colors outline-none data-[state=active]:bg-orange-500 data-[state=active]:text-white bg-white text-gray-500 border-gray-100 flex-row-reverse shadow-none hover:text-orange-500 data-[state=active]:hover:text-white"><span>تعبئة (Recharge)</span><Smartphone className="h-4 w-4" /></TabsTrigger>
-              <TabsTrigger value="history" className="rounded-xl h-10 px-6 font-black text-xs flex items-center gap-2 border transition-colors outline-none data-[state=active]:bg-orange-500 data-[state=active]:text-white bg-white text-gray-500 border-gray-100 flex-row-reverse shadow-none hover:text-orange-500 data-[state=active]:hover:text-white"><span>سجل العمليات</span><History className="h-4 w-4" /></TabsTrigger>
+              <TabsTrigger value="bank" className="rounded-xl h-10 px-6 font-black text-xs flex items-center gap-2 border transition-all outline-none data-[state=active]:bg-orange-500 data-[state=active]:text-white bg-white text-gray-500 border-gray-100 flex-row-reverse shadow-none hover:bg-orange-50/50 hover:text-orange-500 data-[state=active]:hover:bg-orange-500 data-[state=active]:hover:text-white"><span>تحويل بنكي</span><Building2 className="h-4 w-4" /></TabsTrigger>
+              <TabsTrigger value="voucher" className="rounded-xl h-10 px-6 font-black text-xs flex items-center gap-2 border transition-all outline-none data-[state=active]:bg-orange-500 data-[state=active]:text-white bg-white text-gray-500 border-gray-100 flex-row-reverse shadow-none hover:bg-orange-50/50 hover:text-orange-500 data-[state=active]:hover:bg-orange-500 data-[state=active]:hover:text-white"><span>تعبئة (Recharge)</span><Smartphone className="h-4 w-4" /></TabsTrigger>
+              <TabsTrigger value="history" className="rounded-xl h-10 px-6 font-black text-xs flex items-center gap-2 border transition-all outline-none data-[state=active]:bg-orange-500 data-[state=active]:text-white bg-white text-gray-500 border-gray-100 flex-row-reverse shadow-none hover:bg-orange-50/50 hover:text-orange-500 data-[state=active]:hover:bg-orange-500 data-[state=active]:hover:text-white"><span>سجل العمليات</span><History className="h-4 w-4" /></TabsTrigger>
             </TabsList>
           </div>
 

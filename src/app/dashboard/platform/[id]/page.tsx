@@ -162,7 +162,6 @@ export default function PlatformPage({ params }: { params: Promise<{ id: string 
 
   useEffect(() => {
     async function fetchServices() {
-      // Don't show full loading if we have cached data
       if (platformServices.length === 0) setLoading(true);
       
       try {
@@ -207,11 +206,11 @@ export default function PlatformPage({ params }: { params: Promise<{ id: string 
       <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full" dir="rtl">
         <div className="w-full overflow-x-auto scrollbar-hide px-1 flex items-center justify-start gap-2 py-2">
           <TabsList className="bg-transparent h-auto p-0 flex items-center gap-2 border-none">
-            <TabsTrigger value="followers" className="rounded-xl h-10 px-6 font-black text-xs shrink-0 flex items-center gap-2 border transition-colors data-[state=active]:bg-orange-500 data-[state=active]:text-white data-[state=active]:border-orange-500 bg-white text-gray-500 border-gray-100 flex-row-reverse shadow-none hover:text-orange-500 data-[state=active]:hover:text-white"><span>{platformId === 'telegram' ? 'أعضاء' : 'متابعين'}</span><User className="h-4 w-4" /></TabsTrigger>
+            <TabsTrigger value="followers" className="rounded-xl h-10 px-6 font-black text-xs shrink-0 flex items-center gap-2 border transition-all outline-none data-[state=active]:bg-orange-500 data-[state=active]:text-white data-[state=active]:border-orange-500 bg-white text-gray-500 border-gray-100 flex-row-reverse shadow-none hover:bg-orange-50/50 hover:text-orange-500 data-[state=active]:hover:bg-orange-500 data-[state=active]:hover:text-white"><span>{platformId === 'telegram' ? 'أعضاء' : 'متابعين'}</span><User className="h-4 w-4" /></TabsTrigger>
             {platformId !== 'telegram' && (
-              <><TabsTrigger value="likes" className="rounded-xl h-10 px-6 font-black text-xs shrink-0 flex items-center gap-2 border transition-colors data-[state=active]:bg-orange-500 data-[state=active]:text-white data-[state=active]:border-orange-500 bg-white text-gray-500 border-gray-100 flex-row-reverse shadow-none hover:text-orange-500 data-[state=active]:hover:text-white"><span>لايكات</span><Heart className="h-4 w-4" /></TabsTrigger>
-                <TabsTrigger value="views" className="rounded-xl h-10 px-6 font-black text-xs shrink-0 flex items-center gap-2 border transition-colors data-[state=active]:bg-orange-500 data-[state=active]:text-white data-[state=active]:border-orange-500 bg-white text-gray-500 border-gray-100 flex-row-reverse shadow-none hover:text-orange-500 data-[state=active]:hover:text-white"><span>مشاهدات</span><Play className="h-4 w-4" /></TabsTrigger>
-                <TabsTrigger value="comments" className="rounded-xl h-10 px-6 font-black text-xs shrink-0 flex items-center gap-2 border transition-colors data-[state=active]:bg-orange-500 data-[state=active]:text-white data-[state=active]:border-orange-500 bg-white text-gray-500 border-gray-100 flex-row-reverse shadow-none hover:text-orange-500 data-[state=active]:hover:text-white"><span>تعليقات</span><MessageSquare className="h-4 w-4" /></TabsTrigger></>)}
+              <><TabsTrigger value="likes" className="rounded-xl h-10 px-6 font-black text-xs shrink-0 flex items-center gap-2 border transition-all outline-none data-[state=active]:bg-orange-500 data-[state=active]:text-white data-[state=active]:border-orange-500 bg-white text-gray-500 border-gray-100 flex-row-reverse shadow-none hover:bg-orange-50/50 hover:text-orange-500 data-[state=active]:hover:bg-orange-500 data-[state=active]:hover:text-white"><span>لايكات</span><Heart className="h-4 w-4" /></TabsTrigger>
+                <TabsTrigger value="views" className="rounded-xl h-10 px-6 font-black text-xs shrink-0 flex items-center gap-2 border transition-all outline-none data-[state=active]:bg-orange-500 data-[state=active]:text-white data-[state=active]:border-orange-500 bg-white text-gray-500 border-gray-100 flex-row-reverse shadow-none hover:bg-orange-50/50 hover:text-orange-500 data-[state=active]:hover:bg-orange-500 data-[state=active]:hover:text-white"><span>مشاهدات</span><Play className="h-4 w-4" /></TabsTrigger>
+                <TabsTrigger value="comments" className="rounded-xl h-10 px-6 font-black text-xs shrink-0 flex items-center gap-2 border transition-all outline-none data-[state=active]:bg-orange-500 data-[state=active]:text-white data-[state=active]:border-orange-500 bg-white text-gray-500 border-gray-100 flex-row-reverse shadow-none hover:bg-orange-50/50 hover:text-orange-500 data-[state=active]:hover:bg-orange-500 data-[state=active]:hover:text-white"><span>تعليقات</span><MessageSquare className="h-4 w-4" /></TabsTrigger></>)}
           </TabsList>
         </div>
 
