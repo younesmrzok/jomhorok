@@ -401,7 +401,7 @@ function OrderInterface() {
         <Button 
           onClick={handleConfirmOrder} 
           disabled={loading} 
-          className="w-full max-w-[280px] mx-auto h-16 rounded-[1.8rem] orange-gradient text-white text-lg font-black shadow-xl shadow-orange-500/30 gap-3 border-none outline-none active:scale-95 transition-all flex items-center justify-center"
+          className="w-full max-w-md mx-auto h-16 rounded-[1.8rem] orange-gradient text-white text-lg font-black shadow-xl shadow-orange-500/30 gap-3 border-none outline-none active:scale-95 transition-all flex items-center justify-center"
         >
           {loading ? <Loader2 className="h-6 w-6 animate-spin" /> : <Send className="h-6 w-6" />}
           تأكيد وإرسال الطلب
