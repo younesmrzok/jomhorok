@@ -46,7 +46,6 @@ export default function AddFundsPage() {
   const [historyLoading, setHistoryLoading] = useState(true);
   const [copiedId, setCopiedId] = useState<string | null>(null);
   
-  // States for real-time history with dynamic limit
   const [shippings, setShippings] = useState<any[]>([]);
   const [displayLimit, setDisplayLimit] = useState(10);
   const [hasMore, setHasMore] = useState(false);
@@ -58,10 +57,10 @@ export default function AddFundsPage() {
     setMounted(true);
   }, []);
 
-  // Real-time listener for shippings with dynamic limit
   useEffect(() => {
     if (!user || !mounted) return;
 
+    setHistoryLoading(true);
     const q = query(
       collection(db, 'shippings'),
       where('userId', '==', user.uid),

@@ -1,4 +1,3 @@
-
 "use client";
 
 import { useState, useEffect, Suspense, useMemo } from 'react';
@@ -211,7 +210,11 @@ function OrderInterface() {
       toast({ variant: "success", title: "تم الطلب بنجاح", description: "طلبك قيد المعالجة حالياً" });
       router.push('/dashboard/orders');
     } catch (error: any) {
-      toast({ variant: "destructive", title: "فشل إتمام الطلب", description: error.message });
+      let message = error.message || "حدث خطأ غير متوقع";
+      if (message.includes("link_duplicate")) {
+        message = "لا يمكن إرسال الطلب لأن هناك طلباً آخر لنفس الرابط قيد المعالجة أو التنفيذ حالياً.";
+      }
+      toast({ variant: "destructive", title: "فشل إتمام الطلب", description: message });
     } finally {
       setLoading(false);
     }
@@ -309,7 +312,7 @@ function OrderInterface() {
             ].map((text, i) => (
               <li key={i} className="flex items-start gap-2">
                 <div className="w-1 h-1 rounded-full bg-orange-300 mt-1.5 shrink-0" />
-                <p className="text-[11px] font-bold text-orange-800/80 leading-relaxed">{text}</p>
+                <p className="text-11px] font-bold text-orange-800/80 leading-relaxed">{text}</p>
               </li>
             ))}
           </ul>
@@ -398,7 +401,7 @@ function OrderInterface() {
         <Button 
           onClick={handleConfirmOrder} 
           disabled={loading} 
-          className="w-full h-16 rounded-[1.8rem] orange-gradient text-white text-lg font-black shadow-xl shadow-orange-500/30 gap-3 border-none outline-none active:scale-95 transition-all"
+          className="w-full max-w-[340px] mx-auto h-16 rounded-[1.8rem] orange-gradient text-white text-lg font-black shadow-xl shadow-orange-500/30 gap-3 border-none outline-none active:scale-95 transition-all flex items-center justify-center"
         >
           {loading ? <Loader2 className="h-6 w-6 animate-spin" /> : <Send className="h-6 w-6" />}
           تأكيد وإرسال الطلب
