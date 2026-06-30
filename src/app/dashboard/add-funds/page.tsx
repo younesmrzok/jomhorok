@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect } from 'react';
 import { Card } from '@/components/ui/card';
 import { Label } from '@/components/ui/label';
 import { Button } from '@/components/ui/button';
@@ -30,16 +30,10 @@ import Image from 'next/image';
 import { cn } from '@/lib/utils';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useToast } from "@/hooks/use-toast";
-import { createShippingRequest, getPaginatedDocs, getUserShippingsStream } from '@/firebase/db-service';
+import { createShippingRequest } from '@/firebase/db-service';
 import { useAuth } from '@/firebase/hooks';
-import { where } from 'firebase/firestore';
-import { updatePaginatedCache, getPaginatedCache } from '@/lib/pagination-store';
-
-interface PaginatedState {
-  items: any[];
-  lastVisible: any | null;
-  hasMore: boolean;
-}
+import { db } from '@/firebase/config';
+import { collection, query, where, orderBy, limit, onSnapshot } from 'firebase/firestore';
 
 export default function AddFundsPage() {
   const [mounted, setMounted] = useState(false);
@@ -52,7 +46,11 @@ export default function AddFundsPage() {
   const [historyLoading, setHistoryLoading] = useState(true);
   const [copiedId, setCopiedId] = useState<string | null>(null);
   
-  const [shippingsState, setShippingsState] = useState<PaginatedState>(getPaginatedCache('userShippings'));
+  // States for real-time history with dynamic limit
+  const [shippings, setShippings] = useState<any[]>([]);
+  const [displayLimit, setDisplayLimit] = useState(10);
+  const [hasMore, setHasMore] = useState(false);
+
   const { toast } = useToast();
   const { user, userData } = useAuth();
 
@@ -60,57 +58,35 @@ export default function AddFundsPage() {
     setMounted(true);
   }, []);
 
-  const loadShippings = useCallback(async (isInitial = false) => {
-    if (!user) return;
-    setHistoryLoading(true);
-    try {
-      const cursor = isInitial ? null : shippingsState.lastVisible;
-      const result = await getPaginatedDocs('shippings', 10, cursor, [where('userId', '==', user.uid)], "createdAt");
-      
-      setShippingsState((prev) => {
-        const newState = {
-          items: isInitial ? result.docs : [...prev.items, ...result.docs],
-          lastVisible: result.lastVisible,
-          hasMore: result.hasMore
-        };
-        updatePaginatedCache('userShippings', newState);
-        return newState;
-      });
-    } catch (e) {
-      console.error("Load shippings error:", e);
-    } finally {
-      setHistoryLoading(false);
-    }
-  }, [user, shippingsState.lastVisible]);
-
+  // Real-time listener for shippings with dynamic limit
   useEffect(() => {
     if (!user || !mounted) return;
 
-    if (shippingsState.items.length === 0) {
-      loadShippings(true);
-    } else {
-      setHistoryLoading(false);
-    }
+    const q = query(
+      collection(db, 'shippings'),
+      where('userId', '==', user.uid),
+      orderBy('createdAt', 'desc'),
+      limit(displayLimit + 1)
+    );
 
-    const unsubscribe = getUserShippingsStream(user.uid, (data) => {
-      if (data) {
-        setShippingsState(prev => {
-          const updatedItems = prev.items.map(item => {
-            const streamItem = data.find(d => d.id === item.id);
-            return streamItem ? { ...item, status: streamItem.status } : item;
-          });
-          
-          const newState = { ...prev, items: updatedItems };
-          updatePaginatedCache('userShippings', newState);
-          return newState;
-        });
+    const unsubscribe = onSnapshot(q, (snap) => {
+      const allDocs = snap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+      
+      if (allDocs.length > displayLimit) {
+        setShippings(allDocs.slice(0, displayLimit));
+        setHasMore(true);
+      } else {
+        setShippings(allDocs);
+        setHasMore(false);
       }
+      setHistoryLoading(false);
+    }, (error) => {
+      console.error("Shippings Stream Error:", error);
+      setHistoryLoading(false);
     });
 
-    return () => {
-      if (unsubscribe) unsubscribe();
-    };
-  }, [user, mounted, loadShippings, shippingsState.items.length]);
+    return () => unsubscribe();
+  }, [user, mounted, displayLimit]);
 
   const bankMethods = [
     { id: 'attijari', name: 'التجاري وفا بنك', logo: 'AWB', image: '/attijari.jpg', color: 'text-amber-600', bg: 'bg-white', border: 'border-amber-200', account: '007590000817230040234264', holder: 'Younes', isAvailable: true },
@@ -163,7 +139,6 @@ export default function AddFundsPage() {
       await createShippingRequest(user.uid, shippingData);
       toast({ variant: "success", title: "تم إرسال الطلب للمراجعة" });
       setAmount(''); setSenderName(''); setSenderAccount(''); setMethod(null);
-      loadShippings(true); 
     } catch (error) { 
       toast({ variant: "destructive", title: "فشل الإرسال" }); 
     } finally { 
@@ -193,7 +168,6 @@ export default function AddFundsPage() {
       await createShippingRequest(user.uid, shippingData);
       toast({ variant: "success", title: "تم إرسال الرمز للمراجعة" });
       setAmount(''); setVoucherCode(''); setMethod(null);
-      loadShippings(true); 
     } catch (error) { 
       toast({ variant: "destructive", title: "فشل الإرسال" }); 
     } finally { 
@@ -212,26 +186,26 @@ export default function AddFundsPage() {
   };
 
   return (
-    <div className="space-y-6 pb-24 text-right" dir="rtl">
+    <div className="space-y-6 pb-24 text-right lg:max-w-6xl lg:mx-auto lg:px-4" dir="rtl">
       <div className="flex items-center gap-2 px-1 lg:px-0">
          <Link href="/dashboard"><button className="text-gray-400 p-0 h-10 w-10 flex items-center justify-center transition-none border-none outline-none bg-transparent active:bg-transparent"><ArrowRight className="h-5 w-5" /></button></Link>
          <div className="flex items-center gap-2">
             <div className="w-4 h-1 bg-orange-500 rounded-full" />
-            <h1 className="text-xl font-black text-gray-900">شحن الرصيد</h1>
+            <h1 className="text-xl font-black text-gray-900 lg:text-2xl">شحن الرصيد</h1>
          </div>
       </div>
 
       <div className="px-1 lg:px-0 space-y-6">
-        <div className="bg-white border border-gray-100 rounded-[2.5rem] p-8 flex items-center justify-between shadow-sm">
+        <div className="bg-white border border-gray-100 rounded-[2.5rem] p-8 flex items-center justify-between shadow-sm lg:p-10">
            <div className="flex flex-col gap-1.5 text-right">
               <span className="text-[10px] font-black text-gray-400 uppercase tracking-widest">رصيدك المتاح:</span>
               <div className="flex items-baseline gap-1">
-                <h2 className="text-4xl font-black text-emerald-600 leading-tight">${formatBalance(userData?.balance || 0)}</h2>
+                <h2 className="text-4xl font-black text-emerald-600 leading-tight lg:text-5xl">${formatBalance(userData?.balance || 0)}</h2>
                 <span className="text-xs font-black text-gray-400">USD</span>
               </div>
            </div>
-           <div className="w-16 h-16 rounded-[1.8rem] bg-orange-50 flex items-center justify-center border border-white">
-              <Wallet className="h-8 w-8 text-orange-500" />
+           <div className="w-16 h-16 rounded-[1.8rem] bg-orange-50 flex items-center justify-center border border-white lg:w-20 lg:h-20">
+              <Wallet className="h-8 w-8 text-orange-500 lg:h-10 lg:w-10" />
            </div>
         </div>
 
@@ -251,7 +225,7 @@ export default function AddFundsPage() {
                   key={m.id} 
                   onClick={() => m.isAvailable && setMethod(m.id as any)} 
                   className={cn(
-                    "flex flex-col items-center justify-center aspect-square rounded-[2.5rem] border transition-none gap-3 p-4 outline-none relative", 
+                    "flex flex-col items-center justify-center aspect-square rounded-[2.5rem] border transition-none gap-3 p-4 lg:p-6 outline-none relative hover:shadow-md", 
                     method === m.id ? "border-orange-500 bg-orange-50" : "bg-white border-gray-100",
                     !m.isAvailable && "opacity-60 cursor-not-allowed"
                   )}
@@ -271,7 +245,7 @@ export default function AddFundsPage() {
 
             {method && isBankMethod && currentBank && currentBank.isAvailable && (
               <div className="space-y-6 animate-in slide-in-from-bottom-5 max-w-2xl mx-auto">
-                <Card className="rounded-[2.5rem] border-none shadow-sm bg-white p-6 space-y-5">
+                <Card className="rounded-[2.5rem] border-none shadow-sm bg-white p-6 lg:p-8 space-y-5">
                   <div className="flex items-center gap-2 border-b border-gray-50 pb-3">
                     <Info className="h-5 w-5 text-orange-500" />
                     <span className="text-xs font-black text-gray-900 uppercase">بيانات الدفع الخاصة بنا</span>
@@ -298,7 +272,7 @@ export default function AddFundsPage() {
                   </div>
                 </Card>
 
-                <Card className="rounded-[2.8rem] border-none shadow-sm bg-white p-8 space-y-8">
+                <Card className="rounded-[2.8rem] border-none shadow-sm bg-white p-8 lg:p-10 space-y-8">
                   <div className="bg-orange-50/50 p-4 rounded-2xl border border-orange-100 flex items-start gap-3">
                     <AlertCircle className="h-5 w-5 text-orange-500 shrink-0 mt-0.5" />
                     <p className="text-[11px] font-black text-orange-800 leading-relaxed">
@@ -370,7 +344,7 @@ export default function AddFundsPage() {
           <TabsContent value="voucher" className="space-y-6 mt-6 outline-none">
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4 w-full">
               {voucherMethods.map((v) => (
-                <button key={v.id} onClick={() => setMethod(v.id as any)} className={cn("flex flex-col items-center justify-center aspect-square rounded-[2.5rem] border transition-none gap-3 p-4 outline-none active:bg-orange-50", method === v.id ? "border-orange-500 bg-orange-50" : "bg-white border-gray-100")}>
+                <button key={v.id} onClick={() => setMethod(v.id as any)} className={cn("flex flex-col items-center justify-center aspect-square rounded-[2.5rem] border transition-none gap-3 p-4 outline-none active:bg-orange-50 hover:shadow-md", method === v.id ? "border-orange-500 bg-orange-50" : "bg-white border-gray-100")}>
                   <div className={cn("w-20 h-14 rounded-xl flex items-center justify-center border relative overflow-hidden", v.bg, v.border)}>
                     <Image src={v.image} alt={v.name} fill className="object-contain p-1.5" />
                   </div>
@@ -379,7 +353,7 @@ export default function AddFundsPage() {
               ))}
             </div>
             {method && isVoucherMethod && (
-              <Card className="rounded-[2.8rem] border-none shadow-sm bg-white p-8 space-y-8 animate-in slide-in-from-bottom-5 max-w-2xl mx-auto">
+              <Card className="rounded-[2.8rem] border-none shadow-sm bg-white p-8 lg:p-10 space-y-8 animate-in slide-in-from-bottom-5 max-w-2xl mx-auto">
                 <div className="bg-orange-50/50 p-4 rounded-2xl border border-orange-100 flex items-start gap-3">
                   <AlertCircle className="h-5 w-5 text-orange-500 shrink-0 mt-0.5" />
                   <p className="text-[11px] font-black text-orange-800 leading-relaxed">
@@ -434,13 +408,13 @@ export default function AddFundsPage() {
 
           <TabsContent value="history" className="space-y-6 mt-6 outline-none">
             <div className="space-y-4">
-              {historyLoading && shippingsState.items.length === 0 ? (
+              {historyLoading && shippings.length === 0 ? (
                 <div className="py-20 flex justify-center"><Loader2 className="h-10 w-10 animate-spin text-orange-500" /></div>
-              ) : shippingsState.items.length > 0 ? (
+              ) : shippings.length > 0 ? (
                 <>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    {shippingsState.items.map((item: any, idx: number) => (
-                      <div key={item.id || idx} className="bg-white p-5 rounded-[2.2rem] border border-gray-50 shadow-sm flex flex-col gap-4">
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                    {shippings.map((item: any, idx: number) => (
+                      <div key={item.id || idx} className="bg-white p-5 lg:p-6 rounded-[2.2rem] border border-gray-50 shadow-sm flex flex-col gap-4 transition-all hover:shadow-md">
                         <div className="flex items-center justify-between">
                           <div className="flex items-center gap-3">
                             <div className="w-10 h-10 rounded-xl bg-gray-50 flex items-center justify-center text-gray-400">{item.type === 'bank' ? <Building2 className="h-5 w-5" /> : <Smartphone className="h-5 w-5" />}</div>
@@ -472,12 +446,12 @@ export default function AddFundsPage() {
                     ))}
                   </div>
                   
-                  {shippingsState.hasMore && shippingsState.items.length >= 10 && (
-                    <div className="pt-6 flex justify-center">
+                  {hasMore && shippings.length >= 10 && (
+                    <div className="pt-8 flex justify-center">
                       <button 
-                        onClick={() => loadShippings()} 
+                        onClick={() => setDisplayLimit(prev => prev + 10)} 
                         disabled={historyLoading}
-                        className="w-full max-w-[280px] mx-auto py-5 bg-white rounded-[2rem] border border-orange-100 text-orange-500 font-black text-xs flex items-center justify-center gap-2 transition-all outline-none active:scale-[0.98]"
+                        className="w-full max-w-[280px] mx-auto py-5 bg-white rounded-[2rem] border border-orange-100 text-orange-500 font-black text-xs flex items-center justify-center gap-2 transition-all outline-none active:scale-[0.98] hover:bg-orange-50 shadow-sm"
                       >
                         {historyLoading ? <Loader2 className="animate-spin h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
                         <span>عرض المزيد</span>

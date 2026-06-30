@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { 
   ArrowRight, 
   Instagram, 
@@ -21,10 +21,9 @@ import {
 import Link from 'next/link';
 import { cn } from '@/lib/utils';
 import { useAuth } from '@/firebase/hooks';
-import { getPaginatedDocs } from '@/firebase/db-service';
+import { db } from '@/firebase/config';
+import { collection, query, where, orderBy, limit, onSnapshot } from 'firebase/firestore';
 import { syncUserOrdersStatus } from '@/firebase/finance-service';
-import { getPaginatedCache, updatePaginatedCache } from '@/lib/pagination-store';
-import { where } from 'firebase/firestore';
 
 const TikTokIcon = ({ className }: { className?: string }) => (
   <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><path d="M9 12a4 4 0 1 0 4 4V4a5 5 0 0 0 5 5" /></svg>
@@ -38,16 +37,12 @@ const ThreadsIcon = ({ className }: { className?: string }) => (
   <svg viewBox="0 0 24 24" fill="currentColor" className={className}><path d="M12 2C6.477 2 2 6.477 2 12s4.477 10 10 10 10-4.477 10-10S17.523 2 12 2zm4.5 13.5c-1.5 1.5-3.5 1.5-4.5 1.5s-3-1-4-2.5c-1-1.5-1-3.5 0-5 1-1.5 3-2.5 4-2.5s3 0 4.5 1.5c1 1 1 3 0 4.5-1 1.5-2.5 2-2.5 2s-1-.5-1-1.5 1.5-2 2-3c.5-1 .5-2 0-2.5-.5-.5-1.5-.5-2 0s-.5 1.5 0 2.5c.5 1 1.5 1 1.5 1z" /></svg>
 );
 
-interface PaginatedState {
-  items: any[];
-  lastVisible: any | null;
-  hasMore: boolean;
-}
-
 export default function OrdersPage() {
   const [mounted, setMounted] = useState(false);
   const [activeTab, setActiveTab] = useState<'all' | 'pending_processing' | 'processing' | 'completed' | 'canceled'>('all');
-  const [ordersState, setOrdersState] = useState<PaginatedState>(getPaginatedCache('userOrders'));
+  const [orders, setOrders] = useState<any[]>([]);
+  const [displayLimit, setDisplayLimit] = useState(10);
+  const [hasMore, setHasMore] = useState(false);
   const [loading, setLoading] = useState(true);
   const { user } = useAuth();
 
@@ -55,72 +50,59 @@ export default function OrdersPage() {
     setMounted(true);
   }, []);
 
-  const loadOrders = useCallback(async (isInitial = false) => {
-    if (!user) return;
-    
-    setLoading(true);
-    try {
-      if (isInitial) {
-        await syncUserOrdersStatus(user.uid);
-      }
-
-      const cursor = isInitial ? null : ordersState.lastVisible;
-      const result = await getPaginatedDocs('orders', 10, cursor, [where('userId', '==', user.uid)], "createdAt");
-      
-      setOrdersState((prev) => {
-        // دمج البيانات الجديدة مع القديمة
-        const combined = isInitial ? result.docs : [...prev.items, ...result.docs];
-        
-        // فرز صارم: الأحدث دائماً في الأعلى (حسب createdAt تنازلياً)
-        const sorted = [...combined].sort((a: any, b: any) => {
-          const timeA = new Date(a.createdAt).getTime() || 0;
-          const timeB = new Date(b.createdAt).getTime() || 0;
-          return timeB - timeA;
-        });
-
-        const newState = {
-          items: sorted,
-          lastVisible: result.lastVisible,
-          hasMore: result.hasMore
-        };
-        updatePaginatedCache('userOrders', newState);
-        return newState;
-      });
-    } catch (e) {
-      console.error("Load orders error:", e);
-    } finally {
-      setLoading(false);
-    }
-  }, [user, ordersState.lastVisible]);
-
+  // Listen to orders in real-time with dynamic limit
   useEffect(() => {
-    if (mounted && user && ordersState.items.length === 0) {
-      loadOrders(true);
-    } else if (mounted && user) {
+    if (!user || !mounted) return;
+
+    // Initial status sync
+    syncUserOrdersStatus(user.uid);
+
+    const q = query(
+      collection(db, 'orders'),
+      where('userId', '==', user.uid),
+      orderBy('createdAt', 'desc'),
+      limit(displayLimit + 1)
+    );
+
+    const unsubscribe = onSnapshot(q, (snap) => {
+      const allDocs = snap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+      
+      if (allDocs.length > displayLimit) {
+        setOrders(allDocs.slice(0, displayLimit));
+        setHasMore(true);
+      } else {
+        setOrders(allDocs);
+        setHasMore(false);
+      }
       setLoading(false);
-    }
-  }, [mounted, user, loadOrders, ordersState.items.length]);
+    }, (error) => {
+      console.error("Orders Stream Error:", error);
+      setLoading(false);
+    });
 
-  if (!mounted) return null;
+    return () => unsubscribe();
+  }, [user, mounted, displayLimit]);
 
-  const filteredOrders = ordersState.items.filter((order: any) => {
-    const status = order.status;
-    if (activeTab === 'all') return true;
-    
-    if (activeTab === 'pending_processing') {
-      return status === 'قيد المعالجة' || status === 'قيد المراجعة' || status === 'Pending' || status === 'Processing';
-    }
-    if (activeTab === 'processing') {
-      return status === 'قيد التنفيذ' || status === 'In progress' || status === 'In Progress';
-    }
-    if (activeTab === 'completed') {
-      return status === 'مكتمل' || status === 'Completed' || status === 'Partial';
-    }
-    if (activeTab === 'canceled') {
-      return status === 'ملغي' || status === 'Canceled' || status === 'Cancelled' || status === 'Refunded';
-    }
-    return true;
-  });
+  const filteredOrders = useMemo(() => {
+    return orders.filter((order: any) => {
+      const status = order.status;
+      if (activeTab === 'all') return true;
+      
+      if (activeTab === 'pending_processing') {
+        return status === 'قيد المعالجة' || status === 'قيد المراجعة' || status === 'Pending' || status === 'Processing';
+      }
+      if (activeTab === 'processing') {
+        return status === 'قيد التنفيذ' || status === 'In progress' || status === 'In Progress';
+      }
+      if (activeTab === 'completed') {
+        return status === 'مكتمل' || status === 'Completed' || status === 'Partial';
+      }
+      if (activeTab === 'canceled') {
+        return status === 'ملغي' || status === 'Canceled' || status === 'Cancelled' || status === 'Refunded';
+      }
+      return true;
+    });
+  }, [orders, activeTab]);
 
   const getPlatformIcon = (platform: string) => {
     const p = platform?.toLowerCase() || '';
@@ -146,20 +128,22 @@ export default function OrdersPage() {
 
   const getTabButtonStyle = (tab: typeof activeTab) => {
     return cn(
-      "rounded-xl h-10 px-6 font-black text-xs shrink-0 flex items-center gap-2 border transition-all outline-none focus:outline-none ring-0",
+      "rounded-xl h-10 px-6 font-black text-xs shrink-0 flex items-center gap-2 border transition-all outline-none focus:outline-none ring-0 active:bg-orange-500",
       activeTab === tab 
         ? "bg-orange-500 text-white border-orange-500 shadow-md" 
         : "bg-white text-gray-500 border-gray-100 hover:text-orange-500 hover:bg-orange-50/50"
     );
   };
 
+  if (!mounted) return null;
+
   return (
-    <div className="space-y-4 pb-28 text-right" dir="rtl">
+    <div className="space-y-4 pb-28 text-right lg:max-w-6xl lg:mx-auto lg:px-4" dir="rtl">
       <div className="flex items-center gap-2 px-1 lg:px-0">
          <Link href="/dashboard"><button className="text-gray-400 p-0 h-10 w-10 flex items-center justify-center transition-none outline-none border-none bg-transparent active:bg-transparent"><ArrowRight className="h-5 w-5" /></button></Link>
          <div className="flex items-center gap-2">
             <div className="w-4 h-1 bg-orange-500 rounded-full" />
-            <h1 className="text-xl font-black text-gray-900">طلباتي</h1>
+            <h1 className="text-xl font-black text-gray-900 lg:text-2xl">طلباتي</h1>
          </div>
       </div>
 
@@ -173,11 +157,11 @@ export default function OrdersPage() {
         </div>
 
         <div className="space-y-4 pt-4">
-          {loading && ordersState.items.length === 0 ? (
+          {loading && orders.length === 0 ? (
             <div className="py-20 flex justify-center"><Loader2 className="h-10 w-10 animate-spin text-orange-500" /></div>
           ) : filteredOrders.length > 0 ? (
             <>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                 {filteredOrders.map((order, idx) => {
                   const platformInfo = getPlatformIcon(order.platform || order.title);
                   const Icon = platformInfo.icon;
@@ -189,11 +173,11 @@ export default function OrdersPage() {
                   if (displayStatus === 'Canceled' || displayStatus === 'Cancelled' || displayStatus === 'Refunded') displayStatus = 'ملغي';
 
                   return (
-                    <div key={order.id || idx} className="bg-white p-5 rounded-[2.5rem] border border-gray-50 shadow-sm flex flex-col gap-4 relative overflow-hidden">
+                    <div key={order.id || idx} className="bg-white p-5 lg:p-6 rounded-[2.5rem] border border-gray-50 shadow-sm flex flex-col gap-4 relative overflow-hidden transition-all hover:shadow-md">
                       <div className="flex items-center justify-between">
                         <div className="flex items-center gap-3">
                           <div className={cn("w-10 h-10 rounded-xl flex items-center justify-center shadow-sm", platformInfo.bg)}><Icon className={cn("h-5 w-5", platformInfo.color)} /></div>
-                          <div className="flex flex-col text-right"><span className="text-[12px] font-black text-gray-900 leading-none">ID: #{order.apiOrderId || '...'}</span><span className="text-[9px] font-bold text-gray-300 mt-1">{new Date(order.createdAt).toLocaleDateString('ar-MA')}</span></div>
+                          <div className="flex flex-col text-right"><span className="text-[12px] font-black text-gray-900 leading-none">ID: #{order.apiOrderId || '...'}</span><span className="text-[9px] font-bold text-gray-300 mt-1">{order.createdAt ? new Date(order.createdAt).toLocaleDateString('ar-MA') : 'جاري...'}</span></div>
                         </div>
                         <div className={cn(
                           "px-3 py-1.5 rounded-full text-[9px] font-black uppercase tracking-widest", 
@@ -218,19 +202,19 @@ export default function OrdersPage() {
                             <span className="text-sm font-black text-green-600">${order.price?.toFixed(2) || '0.00'}</span>
                           </div>
                         </div>
-                        <a href={order.link?.startsWith('http') ? order.link : `https://${order.link}`} target="_blank" rel="noopener noreferrer" className="flex items-center gap-1.5 text-orange-500 font-black text-[10px] px-3 py-2">انتقال للرابط <ArrowUpRight className="h-3 w-3" /></a>
+                        <a href={order.link?.startsWith('http') ? order.link : `https://${order.link}`} target="_blank" rel="noopener noreferrer" className="flex items-center gap-1.5 text-orange-500 font-black text-[10px] px-3 py-2 hover:bg-orange-50 rounded-xl transition-all">انتقال للرابط <ArrowUpRight className="h-3 w-3" /></a>
                       </div>
                     </div>
                   );
                 })}
               </div>
               
-              {ordersState.hasMore && ordersState.items.length >= 10 && (
-                <div className="pt-6 flex justify-center">
+              {hasMore && orders.length >= 10 && (
+                <div className="pt-8 flex justify-center">
                   <button 
-                    onClick={() => loadOrders()} 
+                    onClick={() => setDisplayLimit(prev => prev + 10)} 
                     disabled={loading} 
-                    className="w-full max-w-[280px] py-5 bg-white rounded-[2rem] border border-orange-100 text-orange-500 font-black text-xs flex items-center justify-center gap-2 transition-all outline-none active:scale-[0.98]"
+                    className="w-full max-w-[280px] py-5 bg-white rounded-[2rem] border border-orange-100 text-orange-500 font-black text-xs flex items-center justify-center gap-2 transition-all outline-none active:scale-[0.98] hover:bg-orange-50 shadow-sm"
                   >
                     {loading ? <Loader2 className="animate-spin h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
                     <span>عرض المزيد</span>
