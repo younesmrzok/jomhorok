@@ -68,14 +68,8 @@ export default function AddFundsPage() {
       const result = await getPaginatedDocs('shippings', 10, cursor, [where('userId', '==', user.uid)], "createdAt");
       
       setShippingsState((prev) => {
-        const newItems = isInitial ? result.docs : [...prev.items, ...result.docs];
-        // Ensure sorting: Newest first
-        const sortedItems = [...newItems].sort((a: any, b: any) => 
-          new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
-        );
-        
         const newState = {
-          items: sortedItems,
+          items: isInitial ? result.docs : [...prev.items, ...result.docs],
           lastVisible: result.lastVisible,
           hasMore: result.hasMore
         };
@@ -89,7 +83,6 @@ export default function AddFundsPage() {
     }
   }, [user, shippingsState.lastVisible]);
 
-  // Initial load and real-time status sync
   useEffect(() => {
     if (!user || !mounted) return;
 
@@ -99,7 +92,6 @@ export default function AddFundsPage() {
       setHistoryLoading(false);
     }
 
-    // Real-time listener specifically for status updates on existing records
     const unsubscribe = getUserShippingsStream(user.uid, (data) => {
       if (data) {
         setShippingsState(prev => {
@@ -171,7 +163,7 @@ export default function AddFundsPage() {
       await createShippingRequest(user.uid, shippingData);
       toast({ variant: "success", title: "تم إرسال الطلب للمراجعة" });
       setAmount(''); setSenderName(''); setSenderAccount(''); setMethod(null);
-      loadShippings(true); // Refresh list
+      loadShippings(true); 
     } catch (error) { 
       toast({ variant: "destructive", title: "فشل الإرسال" }); 
     } finally { 
@@ -201,7 +193,7 @@ export default function AddFundsPage() {
       await createShippingRequest(user.uid, shippingData);
       toast({ variant: "success", title: "تم إرسال الرمز للمراجعة" });
       setAmount(''); setVoucherCode(''); setMethod(null);
-      loadShippings(true); // Refresh list
+      loadShippings(true); 
     } catch (error) { 
       toast({ variant: "destructive", title: "فشل الإرسال" }); 
     } finally { 
@@ -221,7 +213,7 @@ export default function AddFundsPage() {
 
   return (
     <div className="space-y-6 pb-24 text-right" dir="rtl">
-      <div className="flex items-center gap-2">
+      <div className="flex items-center gap-2 px-1 lg:px-0">
          <Link href="/dashboard"><button className="text-gray-400 p-0 h-10 w-10 flex items-center justify-center transition-none border-none outline-none bg-transparent active:bg-transparent"><ArrowRight className="h-5 w-5" /></button></Link>
          <div className="flex items-center gap-2">
             <div className="w-4 h-1 bg-orange-500 rounded-full" />
@@ -229,7 +221,7 @@ export default function AddFundsPage() {
          </div>
       </div>
 
-      <div className="px-1 space-y-6">
+      <div className="px-1 lg:px-0 space-y-6">
         <div className="bg-white border border-gray-100 rounded-[2.5rem] p-8 flex items-center justify-between shadow-sm">
            <div className="flex flex-col gap-1.5 text-right">
               <span className="text-[10px] font-black text-gray-400 uppercase tracking-widest">رصيدك المتاح:</span>
@@ -253,7 +245,7 @@ export default function AddFundsPage() {
           </div>
 
           <TabsContent value="bank" className="space-y-6 mt-6 outline-none">
-            <div className="grid grid-cols-2 gap-4 w-full">
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-4 w-full">
               {bankMethods.map((m) => (
                 <button 
                   key={m.id} 
@@ -278,13 +270,13 @@ export default function AddFundsPage() {
             </div>
 
             {method && isBankMethod && currentBank && currentBank.isAvailable && (
-              <div className="space-y-6 animate-in slide-in-from-bottom-5">
+              <div className="space-y-6 animate-in slide-in-from-bottom-5 max-w-2xl mx-auto">
                 <Card className="rounded-[2.5rem] border-none shadow-sm bg-white p-6 space-y-5">
                   <div className="flex items-center gap-2 border-b border-gray-50 pb-3">
                     <Info className="h-5 w-5 text-orange-500" />
                     <span className="text-xs font-black text-gray-900 uppercase">بيانات الدفع الخاصة بنا</span>
                   </div>
-                  <div className="space-y-4">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div className="p-4 bg-gray-50 rounded-2xl flex items-center justify-between group">
                        <div className="flex flex-col gap-1 text-right">
                          <span className="text-[10px] font-black text-gray-400">رقم الحساب</span>
@@ -315,31 +307,33 @@ export default function AddFundsPage() {
                   </div>
 
                   <div className="space-y-6">
-                    <div className="space-y-2 text-right">
-                      <div className="flex items-center gap-2 mr-1 justify-start">
-                        <User className="h-4 w-4 text-gray-400" />
-                        <Label className="text-sm font-black text-gray-900 font-tajawal uppercase">اسم الحساب المرسل</Label>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                      <div className="space-y-2 text-right">
+                        <div className="flex items-center gap-2 mr-1 justify-start">
+                          <User className="h-4 w-4 text-gray-400" />
+                          <Label className="text-sm font-black text-gray-900 font-tajawal uppercase">اسم الحساب المرسل</Label>
+                        </div>
+                        <input 
+                          placeholder="ياسين المغربي" 
+                          value={senderName} 
+                          maxLength={50}
+                          onChange={(e) => setSenderName(e.target.value)} 
+                          className={cn("h-14 w-full rounded-2xl bg-gray-50/50 border border-gray-100 text-right px-6 font-bold text-sm focus:border-orange-500 shadow-none outline-none text-gray-600 font-tajawal", senderName.length >= 50 && "border-red-500")} 
+                        />
                       </div>
-                      <input 
-                        placeholder="ياسين المغربي" 
-                        value={senderName} 
-                        maxLength={50}
-                        onChange={(e) => setSenderName(e.target.value)} 
-                        className={cn("h-14 w-full rounded-2xl bg-gray-50/50 border border-gray-100 text-right px-6 font-bold text-sm focus:border-orange-500 shadow-none outline-none text-gray-600 font-tajawal", senderName.length >= 50 && "border-red-500")} 
-                      />
-                    </div>
-                    <div className="space-y-2 text-right">
-                      <div className="flex items-center gap-2 mr-1 justify-start">
-                        <Hash className="h-4 w-4 text-gray-400" />
-                        <Label className="text-sm font-black text-gray-900 font-tajawal uppercase">رقم الحساب</Label>
+                      <div className="space-y-2 text-right">
+                        <div className="flex items-center gap-2 mr-1 justify-start">
+                          <Hash className="h-4 w-4 text-gray-400" />
+                          <Label className="text-sm font-black text-gray-900 font-tajawal uppercase">رقم الحساب</Label>
+                        </div>
+                        <input 
+                          placeholder="007 810 000..." 
+                          value={senderAccount} 
+                          maxLength={30}
+                          onChange={(e) => setSenderAccount(e.target.value)} 
+                          className={cn("h-14 w-full rounded-2xl bg-gray-50/50 border border-gray-100 text-right px-6 font-bold text-sm focus:border-orange-500 shadow-none outline-none text-gray-600 font-tajawal", senderAccount.length >= 30 && "border-red-500")} 
+                        />
                       </div>
-                      <input 
-                        placeholder="007 810 000..." 
-                        value={senderAccount} 
-                        maxLength={30}
-                        onChange={(e) => setSenderAccount(e.target.value)} 
-                        className={cn("h-14 w-full rounded-2xl bg-gray-50/50 border border-gray-100 text-right px-6 font-bold text-sm focus:border-orange-500 shadow-none outline-none text-gray-600 font-tajawal", senderAccount.length >= 30 && "border-red-500")} 
-                      />
                     </div>
                     <div className="space-y-2 text-right">
                       <div className="flex items-center gap-2 mr-1 justify-start">
@@ -374,7 +368,7 @@ export default function AddFundsPage() {
           </TabsContent>
 
           <TabsContent value="voucher" className="space-y-6 mt-6 outline-none">
-            <div className="grid grid-cols-2 gap-4 w-full">
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-4 w-full">
               {voucherMethods.map((v) => (
                 <button key={v.id} onClick={() => setMethod(v.id as any)} className={cn("flex flex-col items-center justify-center aspect-square rounded-[2.5rem] border transition-none gap-3 p-4 outline-none active:bg-orange-50", method === v.id ? "border-orange-500 bg-orange-50" : "bg-white border-gray-100")}>
                   <div className={cn("w-20 h-14 rounded-xl flex items-center justify-center border relative overflow-hidden", v.bg, v.border)}>
@@ -385,7 +379,7 @@ export default function AddFundsPage() {
               ))}
             </div>
             {method && isVoucherMethod && (
-              <Card className="rounded-[2.8rem] border-none shadow-sm bg-white p-8 space-y-8 animate-in slide-in-from-bottom-5">
+              <Card className="rounded-[2.8rem] border-none shadow-sm bg-white p-8 space-y-8 animate-in slide-in-from-bottom-5 max-w-2xl mx-auto">
                 <div className="bg-orange-50/50 p-4 rounded-2xl border border-orange-100 flex items-start gap-3">
                   <AlertCircle className="h-5 w-5 text-orange-500 shrink-0 mt-0.5" />
                   <p className="text-[11px] font-black text-orange-800 leading-relaxed">
@@ -444,40 +438,42 @@ export default function AddFundsPage() {
                 <div className="py-20 flex justify-center"><Loader2 className="h-10 w-10 animate-spin text-orange-500" /></div>
               ) : shippingsState.items.length > 0 ? (
                 <>
-                  {shippingsState.items.map((item: any, idx: number) => (
-                    <div key={item.id || idx} className="bg-white p-5 rounded-[2.2rem] border border-gray-50 shadow-sm flex flex-col gap-4">
-                      <div className="flex items-center justify-between">
-                        <div className="flex items-center gap-3">
-                          <div className="w-10 h-10 rounded-xl bg-gray-50 flex items-center justify-center text-gray-400">{item.type === 'bank' ? <Building2 className="h-5 w-5" /> : <Smartphone className="h-5 w-5" />}</div>
-                          <div className="flex flex-col text-right">
-                            <span className="text-xs font-black text-gray-900">{item.type === 'bank' ? item.bankName : item.company}</span>
-                            <span className="text-[9px] font-bold text-gray-300">{item.createdAt ? new Date(item.createdAt).toLocaleDateString('ar-MA') : 'جاري المعالجة'}</span>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    {shippingsState.items.map((item: any, idx: number) => (
+                      <div key={item.id || idx} className="bg-white p-5 rounded-[2.2rem] border border-gray-50 shadow-sm flex flex-col gap-4">
+                        <div className="flex items-center justify-between">
+                          <div className="flex items-center gap-3">
+                            <div className="w-10 h-10 rounded-xl bg-gray-50 flex items-center justify-center text-gray-400">{item.type === 'bank' ? <Building2 className="h-5 w-5" /> : <Smartphone className="h-5 w-5" />}</div>
+                            <div className="flex flex-col text-right">
+                              <span className="text-xs font-black text-gray-900">{item.type === 'bank' ? item.bankName : item.company}</span>
+                              <span className="text-[9px] font-bold text-gray-300">{item.createdAt ? new Date(item.createdAt).toLocaleDateString('ar-MA') : 'جاري المعالجة'}</span>
+                            </div>
+                          </div>
+                          <div className={cn(
+                            "px-3 py-1.5 rounded-full text-[9px] font-black uppercase tracking-widest", 
+                            item.status === 'completed' ? "bg-green-50 text-green-600" : 
+                            item.status === 'rejected' ? "bg-red-50 text-red-600" : 
+                            "bg-orange-50 text-orange-600"
+                          )}>
+                            {item.status === 'completed' ? 'مكتمل' : item.status === 'rejected' ? 'مرفوض' : 'قيد الانتظار'}
                           </div>
                         </div>
-                        <div className={cn(
-                          "px-3 py-1.5 rounded-full text-[9px] font-black uppercase tracking-widest", 
-                          item.status === 'completed' ? "bg-green-50 text-green-600" : 
-                          item.status === 'rejected' ? "bg-red-50 text-red-600" : 
-                          "bg-orange-50 text-orange-600"
-                        )}>
-                          {item.status === 'completed' ? 'مكتمل' : item.status === 'rejected' ? 'مرفوض' : 'قيد الانتظار'}
+                        <div className="flex items-center justify-between border-t border-gray-50 pt-3">
+                          <div className="flex flex-col">
+                            <span className="text-[9px] font-bold text-gray-400">المبلغ</span>
+                            <span className="text-base font-black text-green-600">{item.amount} درهم</span>
+                          </div>
+                          <div className="flex items-center gap-1.5">
+                            {item.status === 'pending' ? <Clock className="h-3 w-3 text-orange-400" /> : item.status === 'completed' ? <CheckCircle2 className="h-3 w-3 text-green-500" /> : <XCircle className="h-3 w-3 text-red-500" />}
+                            <span className="text-[9px] font-black text-gray-400">{item.status === 'pending' ? 'قيد المراجعة' : item.status === 'completed' ? 'تم الشحن' : 'تم الرفض'}</span>
+                          </div>
                         </div>
                       </div>
-                      <div className="flex items-center justify-between border-t border-gray-50 pt-3">
-                        <div className="flex flex-col">
-                          <span className="text-[9px] font-bold text-gray-400">المبلغ</span>
-                          <span className="text-base font-black text-green-600">{item.amount} درهم</span>
-                        </div>
-                        <div className="flex items-center gap-1.5">
-                          {item.status === 'pending' ? <Clock className="h-3 w-3 text-orange-400" /> : item.status === 'completed' ? <CheckCircle2 className="h-3 w-3 text-green-500" /> : <XCircle className="h-3 w-3 text-red-500" />}
-                          <span className="text-[9px] font-black text-gray-400">{item.status === 'pending' ? 'قيد المراجعة' : item.status === 'completed' ? 'تم الشحن' : 'تم الرفض'}</span>
-                        </div>
-                      </div>
-                    </div>
-                  ))}
+                    ))}
+                  </div>
                   
                   {shippingsState.hasMore && shippingsState.items.length >= 10 && (
-                    <div className="pt-4 flex justify-center">
+                    <div className="pt-6 flex justify-center">
                       <button 
                         onClick={() => loadShippings()} 
                         disabled={historyLoading}

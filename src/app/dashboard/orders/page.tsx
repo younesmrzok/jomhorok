@@ -49,7 +49,7 @@ export default function OrdersPage() {
   const [activeTab, setActiveTab] = useState<'all' | 'pending_processing' | 'processing' | 'completed' | 'canceled'>('all');
   const [ordersState, setOrdersState] = useState<PaginatedState>(getPaginatedCache('userOrders'));
   const [loading, setLoading] = useState(true);
-  const { user, loading: authLoading } = useAuth();
+  const { user } = useAuth();
 
   useEffect(() => {
     setMounted(true);
@@ -68,13 +68,8 @@ export default function OrdersPage() {
       const result = await getPaginatedDocs('orders', 10, cursor, [where('userId', '==', user.uid)], "createdAt");
       
       setOrdersState((prev) => {
-        const newItems = isInitial ? result.docs : [...prev.items, ...result.docs];
-        const sortedItems = [...newItems].sort((a: any, b: any) => 
-          new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
-        );
-        
         const newState = {
-          items: sortedItems,
+          items: isInitial ? result.docs : [...prev.items, ...result.docs],
           lastVisible: result.lastVisible,
           hasMore: result.hasMore
         };
@@ -150,7 +145,7 @@ export default function OrdersPage() {
 
   return (
     <div className="space-y-4 pb-28 text-right" dir="rtl">
-      <div className="flex items-center gap-2">
+      <div className="flex items-center gap-2 px-1 lg:px-0">
          <Link href="/dashboard"><button className="text-gray-400 p-0 h-10 w-10 flex items-center justify-center transition-none outline-none border-none bg-transparent active:bg-transparent"><ArrowRight className="h-5 w-5" /></button></Link>
          <div className="flex items-center gap-2">
             <div className="w-4 h-1 bg-orange-500 rounded-full" />
@@ -158,7 +153,7 @@ export default function OrdersPage() {
          </div>
       </div>
 
-      <div className="w-full px-1">
+      <div className="w-full px-1 lg:px-0">
         <div className="w-full overflow-x-auto scrollbar-hide flex items-center justify-start gap-2 py-2">
           <button onClick={() => setActiveTab('all')} className={getTabButtonStyle('all')}><ListFilter className="h-4 w-4" /> الكل</button>
           <button onClick={() => setActiveTab('pending_processing')} className={getTabButtonStyle('pending_processing')}><AlertCircle className="h-4 w-4" /> قيد المعالجة</button>
@@ -172,61 +167,65 @@ export default function OrdersPage() {
             <div className="py-20 flex justify-center"><Loader2 className="h-10 w-10 animate-spin text-orange-500" /></div>
           ) : filteredOrders.length > 0 ? (
             <>
-              {filteredOrders.map((order, idx) => {
-                const platformInfo = getPlatformIcon(order.platform || order.title);
-                const Icon = platformInfo.icon;
-                
-                let displayStatus = order.status;
-                if (displayStatus === 'قيد المراجعة' || displayStatus === 'Pending' || displayStatus === 'Processing') displayStatus = 'قيد المعالجة';
-                if (displayStatus === 'In progress' || displayStatus === 'In Progress') displayStatus = 'قيد التنفيذ';
-                if (displayStatus === 'Completed' || displayStatus === 'Partial') displayStatus = 'مكتمل';
-                if (displayStatus === 'Canceled' || displayStatus === 'Cancelled' || displayStatus === 'Refunded') displayStatus = 'ملغي';
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                {filteredOrders.map((order, idx) => {
+                  const platformInfo = getPlatformIcon(order.platform || order.title);
+                  const Icon = platformInfo.icon;
+                  
+                  let displayStatus = order.status;
+                  if (displayStatus === 'قيد المراجعة' || displayStatus === 'Pending' || displayStatus === 'Processing') displayStatus = 'قيد المعالجة';
+                  if (displayStatus === 'In progress' || displayStatus === 'In Progress') displayStatus = 'قيد التنفيذ';
+                  if (displayStatus === 'Completed' || displayStatus === 'Partial') displayStatus = 'مكتمل';
+                  if (displayStatus === 'Canceled' || displayStatus === 'Cancelled' || displayStatus === 'Refunded') displayStatus = 'ملغي';
 
-                return (
-                  <div key={order.id || idx} className="bg-white p-5 rounded-[2.5rem] border border-gray-50 shadow-sm flex flex-col gap-4 relative overflow-hidden">
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center gap-3">
-                        <div className={cn("w-10 h-10 rounded-xl flex items-center justify-center shadow-sm", platformInfo.bg)}><Icon className={cn("h-5 w-5", platformInfo.color)} /></div>
-                        <div className="flex flex-col text-right"><span className="text-[12px] font-black text-gray-900 leading-none">ID: #{order.apiOrderId || '...'}</span><span className="text-[9px] font-bold text-gray-300 mt-1">{new Date(order.createdAt).toLocaleDateString('ar-MA')}</span></div>
-                      </div>
-                      <div className={cn(
-                        "px-3 py-1.5 rounded-full text-[9px] font-black uppercase tracking-widest", 
-                        displayStatus === 'مكتمل' ? "bg-green-50 text-green-600" : 
-                        displayStatus === 'قيد التنفيذ' ? "bg-blue-50 text-blue-600" : 
-                        displayStatus === 'قيد المعالجة' ? "bg-slate-50 text-slate-600" :
-                        displayStatus === 'ملغي' ? "bg-red-50 text-red-600" :
-                        "bg-orange-50 text-orange-600"
-                      )}>
-                        {displayStatus}
-                      </div>
-                    </div>
-                    <h4 className="text-[12px] font-black text-gray-800 leading-tight pr-1 line-clamp-1">{order.title}</h4>
-                    <div className="flex items-center justify-between pt-2 border-t border-gray-50">
-                      <div className="flex gap-6">
-                        <div className="flex flex-col">
-                          <span className="text-[9px] font-bold text-gray-400 uppercase tracking-tight">الكمية</span>
-                          <span className="text-sm font-black text-gray-700">{order.quantity?.toLocaleString() || '...'}</span>
+                  return (
+                    <div key={order.id || idx} className="bg-white p-5 rounded-[2.5rem] border border-gray-50 shadow-sm flex flex-col gap-4 relative overflow-hidden">
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-3">
+                          <div className={cn("w-10 h-10 rounded-xl flex items-center justify-center shadow-sm", platformInfo.bg)}><Icon className={cn("h-5 w-5", platformInfo.color)} /></div>
+                          <div className="flex flex-col text-right"><span className="text-[12px] font-black text-gray-900 leading-none">ID: #{order.apiOrderId || '...'}</span><span className="text-[9px] font-bold text-gray-300 mt-1">{new Date(order.createdAt).toLocaleDateString('ar-MA')}</span></div>
                         </div>
-                        <div className="flex flex-col">
-                          <span className="text-[9px] font-bold text-gray-400 uppercase tracking-tight">المبلغ</span>
-                          <span className="text-sm font-black text-green-600">${order.price?.toFixed(2) || '0.00'}</span>
+                        <div className={cn(
+                          "px-3 py-1.5 rounded-full text-[9px] font-black uppercase tracking-widest", 
+                          displayStatus === 'مكتمل' ? "bg-green-50 text-green-600" : 
+                          displayStatus === 'قيد التنفيذ' ? "bg-blue-50 text-blue-600" : 
+                          displayStatus === 'قيد المعالجة' ? "bg-slate-50 text-slate-600" :
+                          displayStatus === 'ملغي' ? "bg-red-50 text-red-600" :
+                          "bg-orange-50 text-orange-600"
+                        )}>
+                          {displayStatus}
                         </div>
                       </div>
-                      <a href={order.link?.startsWith('http') ? order.link : `https://${order.link}`} target="_blank" rel="noopener noreferrer" className="flex items-center gap-1.5 text-orange-500 font-black text-[10px] px-3 py-2">انتقال للرابط <ArrowUpRight className="h-3 w-3" /></a>
+                      <h4 className="text-[12px] font-black text-gray-800 leading-tight pr-1 line-clamp-1">{order.title}</h4>
+                      <div className="flex items-center justify-between pt-2 border-t border-gray-50">
+                        <div className="flex gap-6">
+                          <div className="flex flex-col">
+                            <span className="text-[9px] font-bold text-gray-400 uppercase tracking-tight">الكمية</span>
+                            <span className="text-sm font-black text-gray-700">{order.quantity?.toLocaleString() || '...'}</span>
+                          </div>
+                          <div className="flex flex-col">
+                            <span className="text-[9px] font-bold text-gray-400 uppercase tracking-tight">المبلغ</span>
+                            <span className="text-sm font-black text-green-600">${order.price?.toFixed(2) || '0.00'}</span>
+                          </div>
+                        </div>
+                        <a href={order.link?.startsWith('http') ? order.link : `https://${order.link}`} target="_blank" rel="noopener noreferrer" className="flex items-center gap-1.5 text-orange-500 font-black text-[10px] px-3 py-2">انتقال للرابط <ArrowUpRight className="h-3 w-3" /></a>
+                      </div>
                     </div>
-                  </div>
-                );
-              })}
+                  );
+                })}
+              </div>
               
               {ordersState.hasMore && ordersState.items.length >= 10 && (
-                <button 
-                  onClick={() => loadOrders()} 
-                  disabled={loading} 
-                  className="w-full max-w-[280px] mx-auto py-5 bg-white rounded-[2rem] border border-orange-100 text-orange-500 font-black text-xs flex items-center justify-center gap-2 transition-all outline-none active:scale-[0.98] mt-4"
-                >
-                  {loading ? <Loader2 className="animate-spin h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
-                  <span>عرض المزيد</span>
-                </button>
+                <div className="pt-6 flex justify-center">
+                  <button 
+                    onClick={() => loadOrders()} 
+                    disabled={loading} 
+                    className="w-full max-w-[280px] py-5 bg-white rounded-[2rem] border border-orange-100 text-orange-500 font-black text-xs flex items-center justify-center gap-2 transition-all outline-none active:scale-[0.98]"
+                  >
+                    {loading ? <Loader2 className="animate-spin h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
+                    <span>عرض المزيد</span>
+                  </button>
+                </div>
               )}
             </>
           ) : (
