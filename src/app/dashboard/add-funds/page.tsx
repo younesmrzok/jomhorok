@@ -1,4 +1,3 @@
-
 "use client";
 
 import { useState, useEffect, useCallback } from 'react';
@@ -61,29 +60,65 @@ export default function AddFundsPage() {
     setMounted(true);
   }, []);
 
-  // Real-time listener for shipping requests to catch status changes immediately
+  const loadShippings = useCallback(async (isInitial = false) => {
+    if (!user) return;
+    setHistoryLoading(true);
+    try {
+      const cursor = isInitial ? null : shippingsState.lastVisible;
+      const result = await getPaginatedDocs('shippings', 10, cursor, [where('userId', '==', user.uid)], "createdAt");
+      
+      setShippingsState((prev) => {
+        const newItems = isInitial ? result.docs : [...prev.items, ...result.docs];
+        // Ensure sorting: Newest first
+        const sortedItems = [...newItems].sort((a: any, b: any) => 
+          new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+        );
+        
+        const newState = {
+          items: sortedItems,
+          lastVisible: result.lastVisible,
+          hasMore: result.hasMore
+        };
+        updatePaginatedCache('userShippings', newState);
+        return newState;
+      });
+    } catch (e) {
+      console.error("Load shippings error:", e);
+    } finally {
+      setHistoryLoading(false);
+    }
+  }, [user, shippingsState.lastVisible]);
+
+  // Initial load and real-time status sync
   useEffect(() => {
     if (!user || !mounted) return;
 
+    if (shippingsState.items.length === 0) {
+      loadShippings(true);
+    } else {
+      setHistoryLoading(false);
+    }
+
+    // Real-time listener specifically for status updates on existing records
     const unsubscribe = getUserShippingsStream(user.uid, (data) => {
       if (data) {
         setShippingsState(prev => {
-          const newState = {
-            ...prev,
-            items: data,
-            hasMore: data.length >= 20 // Using 20 as default stream limit
-          };
+          const updatedItems = prev.items.map(item => {
+            const streamItem = data.find(d => d.id === item.id);
+            return streamItem ? { ...item, status: streamItem.status } : item;
+          });
+          
+          const newState = { ...prev, items: updatedItems };
           updatePaginatedCache('userShippings', newState);
           return newState;
         });
       }
-      setHistoryLoading(false);
     });
 
     return () => {
       if (unsubscribe) unsubscribe();
     };
-  }, [user, mounted]);
+  }, [user, mounted, loadShippings, shippingsState.items.length]);
 
   const bankMethods = [
     { id: 'attijari', name: 'التجاري وفا بنك', logo: 'AWB', image: '/attijari.jpg', color: 'text-amber-600', bg: 'bg-white', border: 'border-amber-200', account: '007590000817230040234264', holder: 'Younes', isAvailable: true },
@@ -136,6 +171,7 @@ export default function AddFundsPage() {
       await createShippingRequest(user.uid, shippingData);
       toast({ variant: "success", title: "تم إرسال الطلب للمراجعة" });
       setAmount(''); setSenderName(''); setSenderAccount(''); setMethod(null);
+      loadShippings(true); // Refresh list
     } catch (error) { 
       toast({ variant: "destructive", title: "فشل الإرسال" }); 
     } finally { 
@@ -165,6 +201,7 @@ export default function AddFundsPage() {
       await createShippingRequest(user.uid, shippingData);
       toast({ variant: "success", title: "تم إرسال الرمز للمراجعة" });
       setAmount(''); setVoucherCode(''); setMethod(null);
+      loadShippings(true); // Refresh list
     } catch (error) { 
       toast({ variant: "destructive", title: "فشل الإرسال" }); 
     } finally { 
@@ -438,6 +475,19 @@ export default function AddFundsPage() {
                       </div>
                     </div>
                   ))}
+                  
+                  {shippingsState.hasMore && shippingsState.items.length >= 10 && (
+                    <div className="pt-4 flex justify-center">
+                      <button 
+                        onClick={() => loadShippings()} 
+                        disabled={historyLoading}
+                        className="w-full max-w-[280px] mx-auto py-5 bg-white rounded-[2rem] border border-orange-100 text-orange-500 font-black text-xs flex items-center justify-center gap-2 transition-all outline-none active:scale-[0.98]"
+                      >
+                        {historyLoading ? <Loader2 className="animate-spin h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
+                        <span>عرض المزيد</span>
+                      </button>
+                    </div>
+                  )}
                 </>
               ) : (
                 <div className="py-20 text-center flex flex-col items-center gap-3">
