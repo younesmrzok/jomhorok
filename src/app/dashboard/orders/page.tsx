@@ -69,7 +69,6 @@ export default function OrdersPage() {
       
       setOrdersState((prev) => {
         const newItems = isInitial ? result.docs : [...prev.items, ...result.docs];
-        // Fix: Explicitly sort by newest first to prevent random display
         const sortedItems = [...newItems].sort((a: any, b: any) => 
           new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
         );
@@ -219,7 +218,7 @@ export default function OrdersPage() {
                 );
               })}
               
-              {ordersState.hasMore && ordersState.items.length >= 10 && activeTab === 'all' && (
+              {ordersState.hasMore && ordersState.items.length >= 10 && (
                 <button 
                   onClick={() => loadOrders()} 
                   disabled={loading} 

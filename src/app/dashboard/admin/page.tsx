@@ -1,4 +1,3 @@
-
 "use client";
 
 import { useState, useEffect, useCallback } from 'react';
@@ -369,9 +368,10 @@ export default function AdminDashboard() {
                   {usersState.hasMore && usersState.items.length >= 10 && (
                     <button 
                       onClick={() => fetchData('adminUsers', 'users', usersState, setUsersState)} 
+                      disabled={initialLoading}
                       className="w-full max-w-[280px] mx-auto py-5 bg-white rounded-[2rem] border border-orange-100 text-orange-500 font-black text-xs flex items-center justify-center gap-2 transition-all outline-none active:scale-[0.98]"
                     >
-                      <ChevronDown className="h-4 w-4" />
+                      {initialLoading ? <Loader2 className="animate-spin h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
                       <span>عرض المزيد</span>
                     </button>
                   )}
@@ -431,9 +431,10 @@ export default function AdminDashboard() {
                 {shippingsState.hasMore && shippingsState.items.length >= 10 && (
                   <button 
                     onClick={() => fetchData('adminShippings', 'shippings', shippingsState, setShippingsState)} 
+                    disabled={initialLoading}
                     className="w-full max-w-[280px] mx-auto py-5 bg-white rounded-[2rem] border border-orange-100 text-orange-500 font-black text-xs flex items-center justify-center gap-2 transition-all outline-none active:scale-[0.98]"
                   >
-                    <ChevronDown className="h-4 w-4" />
+                    {initialLoading ? <Loader2 className="animate-spin h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
                     <span>عرض المزيد</span>
                   </button>
                 )}
@@ -518,9 +519,10 @@ export default function AdminDashboard() {
                 {ticketsState.hasMore && ticketsState.items.length >= 10 && (
                   <button 
                     onClick={() => fetchData('adminTickets', 'tickets', ticketsState, setTicketsState)} 
+                    disabled={initialLoading}
                     className="w-full max-w-[280px] mx-auto py-5 bg-white rounded-[2rem] border border-orange-100 text-orange-500 font-black text-xs flex items-center justify-center gap-2 transition-all outline-none active:scale-[0.98]"
                   >
-                    <ChevronDown className="h-4 w-4" />
+                    {initialLoading ? <Loader2 className="animate-spin h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
                     <span>عرض المزيد</span>
                   </button>
                 )}
