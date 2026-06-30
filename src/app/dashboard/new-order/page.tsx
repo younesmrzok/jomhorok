@@ -185,7 +185,7 @@ function OrderInterface() {
       return;
     }
 
-    if (!quantity || iNaN(q) || q < service.min) {
+    if (!quantity || isNaN(q) || q < service.min) {
       toast({ variant: "destructive", title: "كمية غير كافية", description: `الحد الأدنى لهذه الخدمة هو ${service.min}` });
       return;
     }
@@ -299,10 +299,10 @@ function OrderInterface() {
           />
         </div>
 
-        <div className="bg-orange-50/50 border border-orange-100 p-4 rounded-[1.8rem] space-y-2">
+        <div className="bg-orange-50/50 border border-orange-100 p-5 rounded-[1.8rem] space-y-2">
           <div className="flex items-center gap-2 text-orange-600">
-            <Info className="h-3.5 w-3.5" />
-            <span className="text-[10px] font-black uppercase">تنويه مهم</span>
+            <Info className="h-4 w-4" />
+            <span className="text-[11px] font-black uppercase">تنويه مهم</span>
           </div>
           <ul className="space-y-1.5">
             {[
@@ -312,7 +312,7 @@ function OrderInterface() {
             ].map((text, i) => (
               <li key={i} className="flex items-start gap-2">
                 <div className="w-1 h-1 rounded-full bg-orange-300 mt-1.5 shrink-0" />
-                <p className="text-[10px] font-bold text-orange-800/80 leading-relaxed">{text}</p>
+                <p className="text-[11px] font-bold text-orange-800/80 leading-relaxed">{text}</p>
               </li>
             ))}
           </ul>

@@ -50,11 +50,10 @@ export default function OrdersPage() {
     setMounted(true);
   }, []);
 
-  // Listen to orders in real-time with dynamic limit
   useEffect(() => {
     if (!user || !mounted) return;
 
-    // Initial status sync
+    // Trigger background sync but don't let it block the initial load
     syncUserOrdersStatus(user.uid);
 
     const q = query(
@@ -77,7 +76,25 @@ export default function OrdersPage() {
       setLoading(false);
     }, (error) => {
       console.error("Orders Stream Error:", error);
-      setLoading(false);
+      // Fallback in case of index issues
+      const fallbackQ = query(
+        collection(db, 'orders'),
+        where('userId', '==', user.uid),
+        limit(displayLimit + 1)
+      );
+      onSnapshot(fallbackQ, (fSnap) => {
+        const fDocs = fSnap.docs.map(doc => ({ id: doc.id, ...doc.data() }))
+          .sort((a: any, b: any) => new Date(b.createdAt || 0).getTime() - new Date(a.createdAt || 0).getTime());
+        
+        if (fDocs.length > displayLimit) {
+          setOrders(fDocs.slice(0, displayLimit));
+          setHasMore(true);
+        } else {
+          setOrders(fDocs);
+          setHasMore(false);
+        }
+        setLoading(false);
+      });
     });
 
     return () => unsubscribe();
