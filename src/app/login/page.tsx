@@ -102,10 +102,10 @@ export default function LoginPage() {
 
   return (
     <div className="min-h-screen bg-[#fafafa] flex flex-col items-center select-none antialiased" dir="rtl">
-      <div className="w-full max-w-[480px] min-h-screen bg-white shadow-xl flex flex-col relative ring-1 ring-slate-100 pt-16">
+      <div className="w-full max-w-[480px] md:max-w-none min-h-screen bg-white shadow-xl md:shadow-none flex flex-col relative ring-1 ring-slate-100 md:ring-0 pt-16 md:pt-20">
         
-        <header className="h-16 px-4 flex items-center justify-between fixed top-0 w-full max-w-[480px] bg-white z-50 border-b border-gray-100 shrink-0">
-          <div className="flex items-center gap-2">
+        <header className="h-16 md:h-20 px-4 md:px-12 flex items-center justify-between fixed top-0 w-full max-w-[480px] md:max-w-none md:left-0 bg-white z-50 border-b border-gray-100 shrink-0">
+          <div className="flex items-center gap-2 md:hidden">
             <Sheet open={isSidebarOpen} onOpenChange={setIsSidebarOpen}>
               <SheetTrigger asChild>
                 <button className="text-orange-500 h-[38px] w-[38px] flex items-center justify-center bg-white border border-orange-100 rounded-xl outline-none focus:outline-none cursor-pointer active:scale-95 transition-transform">
@@ -152,9 +152,14 @@ export default function LoginPage() {
             </Link>
           </div>
           <div className="flex items-center gap-3">
-            <Link href="/register" className="h-[38px] px-4 rounded-xl border border-orange-100 text-orange-500 font-black text-[11px] flex items-center gap-2 transition-transform outline-none focus:outline-none bg-transparent select-none cursor-pointer active:scale-95">
+            <Link href="/login" className="hidden md:flex h-[42px] px-6 rounded-xl border border-slate-200 text-slate-700 hover:text-orange-500 hover:border-orange-100 font-black text-[13px] items-center gap-2 transition-colors outline-none focus:outline-none bg-transparent select-none">
+              <LogIn className="h-4 w-4" />
+              تسجيل الدخول
+            </Link>
+            <Link href="/register" className="h-[38px] md:h-[42px] px-4 md:px-6 rounded-xl border border-orange-100 md:border-none text-orange-500 md:text-white md:bg-orange-500 md:hover:bg-orange-600 font-black text-[11px] md:text-[13px] flex items-center gap-2 transition-all outline-none focus:outline-none bg-transparent md:shadow-lg md:shadow-orange-500/20 select-none cursor-pointer active:scale-95">
               <UserPlus className="h-4 w-4" />
-              سجل الآن
+              <span className="md:hidden">سجل الآن</span>
+              <span className="hidden md:inline">إنشاء حساب</span>
             </Link>
           </div>
         </header>
