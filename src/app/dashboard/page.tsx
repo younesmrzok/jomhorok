@@ -71,18 +71,18 @@ export default function DashboardOverview() {
   return (
     <div className="flex flex-col gap-8 pb-10" dir="rtl">
       <Card className="border-none shadow-[0_20px_50px_rgba(0,0,0,0.04)] overflow-hidden bg-white rounded-[2.5rem]">
-        <CardContent className="p-6">
-          <div className="grid grid-cols-3 gap-2 text-center mb-10 select-none">
+        <CardContent className="p-6 lg:p-10 lg:flex lg:items-center lg:gap-10">
+          <div className="grid grid-cols-3 gap-2 lg:gap-6 text-center mb-10 lg:mb-0 select-none lg:flex-1">
             {balances.map((item, idx) => {
               const Icon = item.icon;
               return (
-                <div key={idx} className="space-y-3">
-                  <div className={cn("w-10 h-10 rounded-2xl mx-auto flex items-center justify-center mb-1 shadow-sm", item.bg)}>
-                    <Icon className="h-5 w-5 text-orange-400" />
+                <div key={idx} className="space-y-3 lg:flex lg:flex-col lg:items-center lg:bg-gray-50/60 lg:rounded-3xl lg:py-6 lg:px-4">
+                  <div className={cn("w-10 h-10 lg:w-14 lg:h-14 rounded-2xl mx-auto flex items-center justify-center mb-1 shadow-sm", item.bg)}>
+                    <Icon className="h-5 w-5 lg:h-7 lg:w-7 text-orange-400" />
                   </div>
-                  <div className="space-y-1">
-                    <p className="text-[9px] text-gray-400 font-black uppercase tracking-widest">{item.label}</p>
-                    <p className={cn("text-base font-black leading-none", item.textColor)}>
+                  <div className="space-y-1 lg:space-y-2">
+                    <p className="text-[9px] lg:text-[11px] text-gray-400 font-black uppercase tracking-widest">{item.label}</p>
+                    <p className={cn("text-base lg:text-2xl font-black leading-none", item.textColor)}>
                       ${authLoading ? '0.00' : item.value}
                     </p>
                   </div>
@@ -91,17 +91,21 @@ export default function DashboardOverview() {
             })}
           </div>
 
-          <Link href="/dashboard/add-funds" className="w-full block">
-            <Button className="w-full h-14 rounded-2xl orange-gradient text-white text-lg font-black shadow-xl shadow-orange-500/30 mb-4 gap-3 transition-all active:scale-95 border-none flex items-center justify-center">
-              <Plus className="h-6 w-6 stroke-[3]" />
-              شحن الرصيد الآن
-            </Button>
-          </Link>
+          <div className="lg:w-px lg:h-24 lg:bg-gray-100 lg:shrink-0" />
 
-          <div className="flex justify-center mt-2">
-            <div className="inline-flex items-center justify-center gap-1.5 text-[9px] font-black text-gray-400 bg-gray-50 px-6 py-2 rounded-full select-none border border-gray-100/50">
-              <TrendingUp className="h-3 w-3 text-emerald-500" />
-              <span>أرخص الأسعار في المغرب لعام 2026</span>
+          <div className="lg:w-72 lg:shrink-0">
+            <Link href="/dashboard/add-funds" className="w-full block">
+              <Button className="w-full h-14 rounded-2xl orange-gradient text-white text-lg font-black shadow-xl shadow-orange-500/30 mb-4 gap-3 transition-all active:scale-95 border-none flex items-center justify-center">
+                <Plus className="h-6 w-6 stroke-[3]" />
+                شحن الرصيد الآن
+              </Button>
+            </Link>
+
+            <div className="flex justify-center mt-2">
+              <div className="inline-flex items-center justify-center gap-1.5 text-[9px] font-black text-gray-400 bg-gray-50 px-6 py-2 rounded-full select-none border border-gray-100/50">
+                <TrendingUp className="h-3 w-3 text-emerald-500" />
+                <span>أرخص الأسعار في المغرب لعام 2026</span>
+              </div>
             </div>
           </div>
         </CardContent>

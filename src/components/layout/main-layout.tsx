@@ -101,9 +101,9 @@ export function MainLayout({ children }: { children: React.ReactNode }) {
 
   return (
     <div className="flex flex-col min-h-screen bg-[#F8F9FA] text-right" dir="rtl" style={{ fontFamily: "'Tajawal', sans-serif" }}>
-      <header className="h-16 px-4 flex items-center justify-between sticky top-0 bg-white z-40 border-b border-gray-100">
+      <header className="h-16 lg:h-20 px-4 lg:px-10 flex items-center justify-between sticky top-0 bg-white z-40 border-b border-gray-100">
         <Sheet open={open} onOpenChange={setOpen}>
-          <SheetTrigger asChild>
+          <SheetTrigger asChild className="lg:hidden">
             <button className="text-orange-500 h-[38px] w-[38px] flex items-center justify-center bg-white border border-orange-100 rounded-xl outline-none focus:outline-none cursor-pointer active:scale-95 transition-transform">
               <Menu className="h-6 w-6" />
             </button>
@@ -198,16 +198,45 @@ export function MainLayout({ children }: { children: React.ReactNode }) {
           </SheetContent>
         </Sheet>
         
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2 lg:order-1">
           <Link href="/dashboard" className="flex items-center gap-2 outline-none">
              <Image src={headerLogoUrl} alt="جمهورك" width={38} height={38} className="object-contain" />
              <span className="text-[22px] font-bold text-orange-500">جمهورك</span>
           </Link>
         </div>
 
-        <div className="flex items-center gap-3">
+        <nav className="hidden lg:flex items-center gap-1 lg:order-2">
+          {navItems.map((item) => {
+            const Icon = item.icon;
+            const isActive = pathname === item.href;
+            return (
+              <Link
+                key={item.href}
+                href={item.href}
+                className={cn(
+                  "flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-black transition-colors outline-none",
+                  isActive
+                    ? "bg-orange-50 text-orange-500"
+                    : "text-gray-500 hover:text-orange-500 hover:bg-orange-50/50"
+                )}
+              >
+                <Icon className="h-[18px] w-[18px]" />
+                <span>{item.label}</span>
+              </Link>
+            );
+          })}
+        </nav>
+
+        <div className="flex items-center gap-3 lg:order-3">
+          <button
+            onClick={handleLogout}
+            className="hidden lg:flex h-[42px] px-4 rounded-xl border border-red-100 text-red-500 hover:bg-red-50 font-black text-[13px] items-center gap-2 bg-transparent select-none transition-colors outline-none cursor-pointer"
+          >
+            <LogOut className="h-4 w-4" />
+            خروج
+          </button>
           <Link href="/dashboard/settings" className="outline-none">
-            <button className="h-[38px] px-4 rounded-xl border border-orange-100 text-orange-500 font-black text-[11px] flex items-center gap-2 bg-transparent select-none active:scale-95 transition-transform">
+            <button className="h-[38px] lg:h-[42px] px-4 lg:px-5 rounded-xl border border-orange-100 lg:border-none text-orange-500 lg:text-white lg:bg-orange-500 lg:hover:bg-orange-600 font-black text-[11px] lg:text-[13px] flex items-center gap-2 bg-transparent lg:shadow-lg lg:shadow-orange-500/20 select-none active:scale-95 transition-all">
               <User className="h-4 w-4" />
               حسابي
             </button>
@@ -215,13 +244,13 @@ export function MainLayout({ children }: { children: React.ReactNode }) {
         </div>
       </header>
 
-      <main className="flex-1 max-w-lg mx-auto w-full flex flex-col">
-        <div className="flex-1 px-4 py-6">
+      <main className="flex-1 max-w-lg lg:max-w-6xl mx-auto w-full flex flex-col">
+        <div className="flex-1 px-4 lg:px-8 py-6 lg:py-10">
           {children}
         </div>
 
-        <footer className="border-t border-slate-100 bg-white rounded-t-[3rem] pt-8 pb-28 px-6 font-tajawal">
-          <div className="max-w-4xl mx-auto space-y-10">
+        <footer className="border-t border-slate-100 bg-white rounded-t-[3rem] lg:rounded-none pt-8 lg:pt-14 pb-28 lg:pb-12 px-6 lg:px-12 font-tajawal">
+          <div className="max-w-4xl lg:max-w-6xl mx-auto space-y-10">
             <div className="flex flex-col items-center text-center space-y-4">
               <div className="flex items-center gap-2">
                 <Image src={headerLogoUrl} alt="جمهورك" width={38} height={38} className="object-contain" />
@@ -267,7 +296,7 @@ export function MainLayout({ children }: { children: React.ReactNode }) {
         </footer>
       </main>
 
-      <nav className="fixed bottom-0 left-0 right-0 bg-white h-20 flex items-center justify-around px-2 bottom-nav-shadow z-50 rounded-t-[2rem] border-t border-gray-100">
+      <nav className="fixed bottom-0 left-0 right-0 bg-white h-20 flex lg:hidden items-center justify-around px-2 bottom-nav-shadow z-50 rounded-t-[2rem] border-t border-gray-100">
         {navItems.map((item) => {
           const Icon = item.icon;
           const isActive = pathname === item.href;

@@ -136,10 +136,10 @@ export default function LandingPage() {
 
   return (
     <div className="min-h-screen bg-[#fafafa] font-body flex flex-col items-center select-none antialiased" dir="rtl">
-      <div className="w-full max-w-[480px] min-h-screen bg-white shadow-xl flex flex-col relative overflow-hidden ring-1 ring-slate-100">
+      <div className="w-full max-w-[480px] lg:max-w-none min-h-screen bg-white shadow-xl lg:shadow-none flex flex-col relative overflow-hidden ring-1 ring-slate-100 lg:ring-0">
         
-        <header className="h-16 px-4 flex items-center justify-between fixed top-0 w-full max-w-[480px] bg-white z-50 border-b border-gray-100 shrink-0">
-          <div className="flex items-center gap-2">
+        <header className="h-16 lg:h-20 px-4 lg:px-12 flex items-center justify-between fixed top-0 w-full max-w-[480px] lg:max-w-none lg:left-0 bg-white z-50 border-b border-gray-100 shrink-0">
+          <div className="flex items-center gap-2 lg:hidden">
             <Sheet open={isSidebarOpen} onOpenChange={setIsSidebarOpen}>
               <SheetTrigger asChild>
                 <button className="text-orange-500 h-[38px] w-[38px] flex items-center justify-center bg-white border border-orange-100 rounded-xl outline-none focus:outline-none ring-0 focus:ring-0 transition-transform cursor-pointer active:scale-95">
@@ -204,35 +204,43 @@ export default function LandingPage() {
           </div>
 
           <div className="flex items-center gap-3">
-            <Link href="/register" className="h-[38px] px-4 rounded-xl border border-orange-100 text-orange-500 font-black text-[11px] flex items-center gap-2 transition-transform outline-none focus:outline-none bg-transparent select-none active:scale-95">
+            <Link href="/login" className="hidden lg:flex h-[42px] px-6 rounded-xl border border-slate-200 text-slate-700 hover:text-orange-500 hover:border-orange-100 font-black text-[13px] items-center gap-2 transition-colors outline-none focus:outline-none bg-transparent select-none">
+              <LogIn className="h-4 w-4" />
+              تسجيل الدخول
+            </Link>
+            <Link href="/register" className="h-[38px] lg:h-[42px] px-4 lg:px-6 rounded-xl border border-orange-100 lg:border-none text-orange-500 lg:text-white lg:bg-orange-500 lg:hover:bg-orange-600 font-black text-[11px] lg:text-[13px] flex items-center gap-2 transition-all outline-none focus:outline-none bg-transparent lg:shadow-lg lg:shadow-orange-500/20 select-none active:scale-95">
               <UserPlus className="h-4 w-4" />
-              سجل الآن
+              <span className="lg:hidden">سجل الآن</span>
+              <span className="hidden lg:inline">إنشاء حساب</span>
             </Link>
           </div>
         </header>
 
-        <main className="flex-1 overflow-y-auto overflow-x-hidden pt-16 pb-0 scroll-smooth scrollbar-hide">
-          <div className="flex justify-center mt-6 px-4">
+        <main className="flex-1 overflow-y-auto overflow-x-hidden pt-16 lg:pt-20 pb-0 scroll-smooth scrollbar-hide">
+          <div className="lg:grid lg:grid-cols-2 lg:gap-x-12 lg:items-start lg:max-w-6xl lg:mx-auto lg:w-full lg:px-12 lg:pt-10 lg:pb-6">
+          <div className="flex justify-center mt-6 px-4 lg:col-start-2 lg:row-start-1 lg:justify-start lg:px-0 lg:mt-6">
             <span className="inline-flex items-center gap-1.5 bg-amber-50/80 border border-amber-100/60 text-orange-600 px-4 py-1.5 rounded-full text-xs font-black leading-none">
               الأسرع في تقديم خدمات السوشيال ميديا
             </span>
           </div>
 
-          <section className="text-center px-6 mt-5 space-y-4">
-            <h1 className="text-3xl md:text-4xl font-black text-slate-900 leading-[1.35] tracking-tight">
+          <section className="text-center px-6 mt-5 lg:col-start-1 lg:row-start-1 lg:text-right lg:px-0 lg:mt-0 lg:self-center">
+            <h1 className="text-3xl md:text-4xl lg:text-5xl font-black text-slate-900 leading-[1.35] tracking-tight">
               جميع خدمات <span className="text-orange-500">مواقع</span>
               <br />
               <span className="text-orange-500">التواصل الاجتماعي</span>
               <br />
               <span className="inline-block">في مكان واحد</span>
             </h1>
+          </section>
 
-            <p className="text-[13px] text-slate-500/90 leading-relaxed font-black px-4 max-w-sm mx-auto">
+          <section className="text-center px-6 mt-4 lg:col-start-2 lg:row-start-2 lg:text-right lg:px-0 lg:mt-2">
+            <p className="text-[13px] lg:text-base text-slate-500/90 leading-relaxed font-black px-4 lg:px-0 max-w-sm lg:max-w-md mx-auto lg:mx-0">
               خدمات موثوقة، أسعار تنافسية، وسرعة في التنفيذ لنجاحك الرقمي مع جمهورك
             </p>
           </section>
 
-          <section className="relative h-[250px] md:h-[280px] mt-1 flex items-center justify-center overflow-visible">
+          <section className="relative h-[250px] md:h-[280px] lg:h-[340px] mt-1 lg:mt-0 flex items-center justify-center overflow-visible lg:col-start-1 lg:row-start-2 lg:row-span-3 lg:self-start">
             
             <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-64 h-64 bg-orange-500/5 blur-3xl rounded-full pointer-events-none" />
             
@@ -319,7 +327,7 @@ export default function LandingPage() {
             <div className="absolute left-[16%] bottom-[40px] text-slate-300 text-sm font-bold select-none opacity-30">◻</div>
           </section>
 
-          <section className="px-5 mt-4 flex flex-col gap-3.5 pb-2">
+          <section className="px-5 mt-4 flex flex-col gap-3.5 pb-2 lg:col-start-2 lg:row-start-3 lg:px-0 lg:mt-4 lg:flex-row">
             <Link href="/register" className="w-full">
               <button
                 className="w-full flex items-center justify-center gap-2 h-14 bg-orange-500 hover:bg-orange-600 text-white rounded-[2rem] font-black cursor-pointer transition-all shadow-lg shadow-orange-500/15 text-sm md:text-base border-none outline-none focus:outline-none"
@@ -339,7 +347,7 @@ export default function LandingPage() {
             </Link>
           </section>
 
-          <section className="px-5 mt-8 mb-8">
+          <section className="px-5 mt-8 mb-8 lg:col-start-2 lg:row-start-4 lg:px-0 lg:mt-4 lg:mb-0">
             <div className="bg-white border border-slate-50 p-5 rounded-3xl shadow-xs grid grid-cols-3 gap-2">
               <div className="text-center flex flex-col items-center justify-center">
                 <Zap className="w-5 h-5 text-orange-500 mb-1" />
@@ -358,18 +366,19 @@ export default function LandingPage() {
               </div>
             </div>
           </section>
+          </div>
 
           <div className="h-px bg-gray-200 w-full" />
 
-          <section className="px-5 space-y-6 py-10">
+          <section className="px-5 space-y-6 py-10 lg:py-16 lg:max-w-6xl lg:mx-auto lg:w-full lg:px-12">
             <div className="text-center space-y-1">
               <div className="inline-flex items-center justify-center w-10 h-10 rounded-2xl bg-orange-50 text-orange-500 mb-2">
                 <Star className="h-6 w-6" />
               </div>
-              <h2 className="text-xl font-black text-slate-900 tracking-tight">خدماتنا المميزة</h2>
+              <h2 className="text-xl lg:text-3xl font-black text-slate-900 tracking-tight">خدماتنا المميزة</h2>
               <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest leading-none">الأفضل جودة والأسرع تنفيطة</p>
             </div>
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-2 lg:grid-cols-3 gap-4 lg:gap-6">
               {featuredServices.map((service, idx) => {
                 const Icon = service.icon;
                 return (
@@ -392,15 +401,15 @@ export default function LandingPage() {
 
           <div className="h-px bg-gray-200 w-full" />
 
-          <section className="px-5 space-y-6 py-10">
+          <section className="px-5 space-y-6 py-10 lg:py-16 lg:max-w-6xl lg:mx-auto lg:w-full lg:px-12">
             <div className="text-center space-y-1">
               <div className="inline-flex items-center justify-center w-10 h-10 rounded-2xl bg-orange-50 text-orange-500 mb-2">
                 <ShieldCheck className="h-6 w-6" />
               </div>
-              <h2 className="text-xl font-black text-slate-900 tracking-tight">لماذا تختارنا؟</h2>
+              <h2 className="text-xl lg:text-3xl font-black text-slate-900 tracking-tight">لماذا تختارنا؟</h2>
               <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest leading-none">نحن الخيار الأول لآلاف المسوقين</p>
             </div>
-            <div className="grid grid-cols-1 gap-4">
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 lg:gap-6">
               {whyChooseUs.map((item, idx) => {
                 const Icon = item.icon;
                 return (
@@ -420,16 +429,16 @@ export default function LandingPage() {
 
           <div className="h-px bg-gray-200 w-full" />
 
-          <section className="px-5 space-y-8 py-12 bg-gray-50/30">
+          <section className="px-5 space-y-8 py-12 lg:py-16 bg-gray-50/30">
             <div className="text-center space-y-1">
               <div className="inline-flex items-center justify-center w-10 h-10 rounded-2xl bg-orange-50 text-orange-500 mb-2">
                 <HelpCircle className="h-6 w-6" />
               </div>
-              <h2 className="text-xl font-black text-slate-900 tracking-tight">الأسئلة الشائعة</h2>
+              <h2 className="text-xl lg:text-3xl font-black text-slate-900 tracking-tight">الأسئلة الشائعة</h2>
               <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest leading-none">كل ما تحتاج لمعرفته</p>
             </div>
 
-            <Accordion type="single" collapsible className="w-full space-y-4">
+            <Accordion type="single" collapsible className="w-full space-y-4 lg:max-w-3xl lg:mx-auto">
               {faqs.map((faq, i) => (
                 <AccordionItem key={i} value={`item-${i}`} className="border-none bg-white rounded-[2rem] px-6 shadow-sm overflow-hidden">
                   <AccordionTrigger className="hover:no-underline py-5 text-right outline-none focus:outline-none">
@@ -443,41 +452,43 @@ export default function LandingPage() {
             </Accordion>
           </section>
 
-          <footer className="mt-8 border-t border-slate-100 bg-white rounded-t-[3rem] pt-8 pb-10 px-6 font-tajawal">
-            <div className="max-w-4xl mx-auto space-y-10">
-              <div className="flex flex-col items-center text-center space-y-4">
+          <footer className="mt-8 lg:mt-16 border-t border-slate-100 bg-white rounded-t-[3rem] lg:rounded-none pt-8 lg:pt-14 pb-10 px-6 lg:px-12 font-tajawal">
+            <div className="max-w-4xl lg:max-w-6xl mx-auto space-y-10 lg:space-y-0 lg:flex lg:flex-col">
+              <div className="lg:flex lg:flex-row-reverse lg:justify-between lg:items-start lg:gap-12 lg:pb-10 space-y-10 lg:space-y-0">
+              <div className="flex flex-col items-center text-center space-y-4 lg:items-end lg:text-right lg:max-w-md">
                 <div className="flex items-center gap-2">
                   <Image src={headerLogoUrl} alt="جمهورك" width={38} height={38} className="object-contain" />
                   <span className="text-xl font-black text-slate-900">جمهورك</span>
                 </div>
-                <p className="text-xs text-slate-500 leading-relaxed font-bold max-w-xs mx-auto">
+                <p className="text-xs text-slate-500 leading-relaxed font-bold max-w-xs mx-auto lg:mx-0">
                   المنصة الأسرع والأرخص لخدمات التسويق الرقمي في الوطن العربي. جودة مضمونة ودعم فني على مدار الساعة.
                 </p>
               </div>
 
-              <div className="grid grid-cols-2 gap-8 max-w-xs mx-auto">
+              <div className="grid grid-cols-2 gap-8 max-w-xs mx-auto lg:mx-0 lg:gap-16">
                 <div className="space-y-4">
-                  <h4 className="text-xs font-black text-slate-900 flex items-center justify-center">
+                  <h4 className="text-xs font-black text-slate-900 flex items-center justify-center lg:justify-start">
                     القانونية
                   </h4>
-                  <ul className="space-y-2 text-[11px] font-black text-slate-400 text-center">
+                  <ul className="space-y-2 text-[11px] font-black text-slate-400 text-center lg:text-right">
                     <li><Link href="/register" className="hover:text-orange-500 transition-colors">سياسة الخصوصية</Link></li>
                     <li><Link href="/register" className="hover:text-orange-500 transition-colors">شروط الخدمة</Link></li>
                   </ul>
                 </div>
 
                 <div className="space-y-4">
-                  <h4 className="text-xs font-black text-slate-900 flex items-center justify-center">
+                  <h4 className="text-xs font-black text-slate-900 flex items-center justify-center lg:justify-start">
                     المساعدة
                   </h4>
-                  <ul className="space-y-2 text-[11px] font-black text-slate-400 text-center">
+                  <ul className="space-y-2 text-[11px] font-black text-slate-400 text-center lg:text-right">
                     <li><Link href="/register" className="hover:text-orange-500 transition-colors">مركز الدعم</Link></li>
                     <li><Link href="/register" className="hover:text-orange-500 transition-colors">الأسئلة الشائعة</Link></li>
                   </ul>
                 </div>
               </div>
+              </div>
 
-              <div className="pt-8 border-t border-slate-50 flex flex-col items-center gap-4 text-center">
+              <div className="pt-8 border-t border-slate-50 flex flex-col items-center gap-4 text-center lg:flex-row-reverse lg:justify-between lg:gap-0">
                 <div className="inline-flex items-center gap-1.5 text-[10px] font-black text-slate-400 bg-slate-50 px-4 py-1.5 rounded-full border border-slate-100">
                   <span>صنع بكل</span>
                   <Heart className="h-3 w-3 text-rose-500 fill-rose-500 animate-pulse" />
